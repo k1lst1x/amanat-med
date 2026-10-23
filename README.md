@@ -33,8 +33,8 @@ python3 -m http.server 8080
 1. Откройте эту папку в GitHub Desktop.
 2. Нажмите **Publish repository** и выберите публичный репозиторий.
 3. На GitHub откройте **Settings → Pages**.
-4. В **Build and deployment** выберите **Deploy from a branch**.
-5. Выберите ветку `main`, папку `/ (root)` и нажмите **Save**.
+4. В **Build and deployment → Source** выберите **GitHub Actions**.
+5. Отправьте изменения в ветку `main`: workflow `.github/workflows/pages.yml` автоматически соберёт и опубликует сайт.
 
 GitHub покажет адрес сайта после завершения публикации. Обычно это занимает несколько минут.
 
