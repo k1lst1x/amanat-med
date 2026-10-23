@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amanat Med — прозрачная благотворительность</title>
+<meta name="description" content="Демонстрационный MVP Amanat Med — прозрачной платформы адресной медицинской помощи в Кыргызстане.">
+<meta name="theme-color" content="#0E3D2C">
+<meta property="og:title" content="Amanat Med — прозрачная благотворительность">
+<meta property="og:description" content="MVP платформы адресной медицинской помощи в Кыргызстане.">
+<meta property="og:type" content="website">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F6F8F3; --ink:#142A1F; --ink-soft:#4C5C52;
+    --pine:#0E3D2C; --pine-deep:#0A2E22; --leaf:#1E8A5B; --leaf-soft:#E4F1E9;
+    --gold:#B3812F; --gold-soft:#F3E6CB; --sand:#EEE7D7; --line:#DBE1D3; --red:#B44636;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    background:var(--cream);
+    color:var(--ink); font-family:'Golos Text', sans-serif; min-height:100vh;
+    display:flex; flex-direction:column; align-items:center; padding:28px 16px 60px;
+    position:relative;
+  }
+  h1,h2,h3,h4{font-family:'Unbounded', sans-serif; color:var(--pine); font-weight:700; letter-spacing:-0.01em;}
+  button{font-family:inherit; cursor:pointer; border:none; background:none;}
+  button:focus-visible{outline:3px solid rgba(30,138,91,.42); outline-offset:3px;}
+  img,svg{display:block;}
+
+  /* ===== ambient background (matches the pitch site) ===== */
+  .bg-layer{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+  .bg-aurora{position:absolute; inset:-10%; opacity:.55;
+    background:
+      radial-gradient(38% 30% at 18% 18%, rgba(30,138,91,.16) 0%, transparent 60%),
+      radial-gradient(32% 26% at 82% 12%, rgba(179,129,47,.14) 0%, transparent 60%),
+      radial-gradient(40% 34% at 70% 78%, rgba(30,138,91,.12) 0%, transparent 62%),
+      radial-gradient(30% 24% at 12% 82%, rgba(179,129,47,.10) 0%, transparent 60%);
+    animation:aurora-drift 46s ease-in-out infinite alternate;
+  }
+  @keyframes aurora-drift{
+    0%{ transform:translate3d(0,0,0) rotate(0deg); }
+    50%{ transform:translate3d(-1.5%,2%,0) rotate(3deg); }
+    100%{ transform:translate3d(1.5%,-1.5%,0) rotate(-2deg); }
+  }
+  .bg-grain{position:absolute; inset:0; opacity:.05; mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-size:160px 160px;
+  }
+  .bg-tunduk{position:absolute; top:-8%; right:-10%; width:46vw; max-width:620px; opacity:.06; color:var(--pine); animation:tunduk-spin 150s linear infinite;}
+  .bg-tunduk-2{position:absolute; bottom:0%; left:-12%; width:36vw; max-width:480px; opacity:.05; color:var(--gold); transform:rotate(-8deg);}
+  @keyframes tunduk-spin{ to{ transform:rotate(360deg); } }
+  .bg-spotlight{position:absolute; inset:0; opacity:0; transition:opacity .5s ease;
+    background:radial-gradient(520px 520px at var(--mx,50%) var(--my,30%), rgba(126,217,168,.16), transparent 65%);
+  }
+  body:hover .bg-spotlight{opacity:1;}
+  @media (prefers-reduced-motion: reduce){ .bg-aurora, .bg-tunduk{animation:none !important;} }
+
+  .page-top{width:100%; max-width:920px; display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; position:relative; z-index:2;}
+  .page-logo{display:flex; align-items:center; gap:9px; font-family:'Unbounded',sans-serif; font-weight:700; font-size:17px; color:var(--pine);}
+  .page-logo svg{width:19px; height:19px;}
+  .demo-pill{font-family:'Golos Text',sans-serif; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); background:var(--gold-soft); border:1px solid rgba(179,129,47,.22); border-radius:100px; padding:4px 8px;}
+  .view-toggle{display:flex; gap:4px; background:#fff; border:1px solid var(--line); padding:4px; border-radius:100px;}
+  .view-toggle button{font-size:13.5px; font-weight:600; padding:8px 15px; border-radius:100px; color:var(--ink-soft); display:flex; align-items:center; gap:7px; transition:background .15s, color .15s, transform .15s;}
+  .view-toggle button:hover{transform:translateY(-1px);}
+  .view-toggle button.active{background:var(--pine); color:var(--cream);}
+  .view-toggle svg{width:15px; height:15px;}
+
+  .stage{width:100%; display:flex; justify-content:center; position:relative; z-index:2;}
+  .device{position:relative; width:390px; height:824px; background:var(--cream); border-radius:44px;
+    box-shadow:0 2px 3px rgba(14,61,44,.08), 0 30px 60px -18px rgba(14,61,44,.35), 0 0 0 10px #0B1712;
+    overflow:hidden; transition:width .35s ease, height .35s ease, border-radius .35s ease;}
+  .device.web{width:100%; max-width:920px; height:700px; border-radius:14px; box-shadow:0 1px 2px rgba(14,61,44,.06), 0 24px 48px -20px rgba(14,61,44,.28), 0 0 0 1px var(--line);}
+  .notch{position:absolute; top:0; left:50%; transform:translateX(-50%); width:120px; height:26px; background:#0B1712; border-radius:0 0 16px 16px; z-index:30;}
+  .device.web .notch{display:none;}
+  .statusbar{position:relative; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:16px 26px 4px; font-size:13px; font-weight:600; color:var(--pine); font-family:'Unbounded',sans-serif;}
+  .device.web .statusbar{display:none;}
+  .statusbar .icons{display:flex; align-items:center; gap:5px;}
+  .statusbar .icons svg{width:16px; height:16px;}
+
+  .screen{position:absolute; inset:0; padding-top:56px; display:flex; flex-direction:column; opacity:0; pointer-events:none; transform:translateX(14px); transition:opacity .22s ease, transform .22s ease;}
+  .device.web .screen{padding-top:0;}
+  .screen.active{opacity:1; pointer-events:auto; transform:translateX(0);}
+  .scroll{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  .scroll::-webkit-scrollbar{width:0;}
+
+  .app-header{padding:6px 16px 14px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:var(--cream); position:sticky; top:0; z-index:10;}
+  .device.web .app-header{padding:22px 34px 18px;}
+  .app-title{font-size:20px;}
+  .header-right{display:flex; align-items:center; gap:8px; flex:none;}
+  .lang-toggle{display:flex; background:#fff; border:1px solid var(--line); border-radius:100px; padding:3px;}
+  .lang-toggle button{font-family:'Unbounded',sans-serif; font-size:11px; font-weight:700; padding:6px 10px; border-radius:100px; color:var(--ink-soft); transition:transform .15s;}
+  .lang-toggle button:hover{transform:translateY(-1px);}
+  .lang-toggle button.active{background:var(--pine); color:var(--cream);}
+  .app-header .bell{width:36px; height:36px; border-radius:50%; background:#fff; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--pine); flex:none;}
+  .app-header .bell svg{width:16px; height:16px;}
+
+  .feed-list{padding:2px 16px 22px; display:flex; flex-direction:column; gap:14px;}
+  .device.web .feed-list{display:grid; grid-template-columns:repeat(2, 1fr); gap:16px; padding:4px 34px 34px;}
+
+  .stats-strip{margin:0 16px 16px; display:grid; grid-template-columns:repeat(3,1fr); background:var(--leaf-soft); border-radius:16px; overflow:hidden;}
+  .device.web .stats-strip{margin:0 34px 22px;}
+  .stat-cell{padding:14px 10px; text-align:center; border-right:1px solid rgba(14,61,44,.09);}
+  .stat-cell:last-child{border-right:none;}
+  .stat-cell .sc-num{font-family:'Unbounded',sans-serif; font-weight:700; font-size:17px; color:var(--pine);}
+  .stat-cell .sc-lab{font-size:10.5px; color:var(--ink-soft); margin-top:3px; line-height:1.3;}
+
+  .p-card{background:#fff; border:1px solid var(--line); border-radius:16px; overflow:hidden; position:relative;}
+  .p-watermark{position:absolute; top:-14px; right:-10px; width:92px; height:92px; color:var(--leaf); opacity:.07; transform:rotate(-8deg); pointer-events:none;}
+  .p-tag{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:100px; background:var(--gold-soft); color:var(--gold); margin-top:8px; margin-right:6px;}
+  .p-top{display:flex; gap:13px; padding:16px 16px 12px; position:relative; z-index:1;}
+  .avatar{flex:none; width:56px; height:56px; border-radius:50%; background:var(--leaf-soft); display:flex; align-items:center; justify-content:center; color:var(--leaf); overflow:hidden;}
+  .avatar svg{width:30px; height:30px;}
+  .p-info{flex:1; min-width:0;}
+  .p-name{font-size:15.5px; font-weight:700; color:var(--ink);}
+  .p-sub{font-size:13px; color:var(--ink-soft); margin-top:2px;}
+  .verified{display:inline-flex; align-items:center; gap:5px; margin-top:8px; background:var(--leaf-soft); color:var(--leaf); font-size:11.5px; font-weight:700; padding:4px 9px; border-radius:100px;}
+  .verified svg{width:11px; height:11px;}
+  .p-progress{padding:0 16px 4px;}
+  .p-bar-track{height:7px; background:var(--line); border-radius:100px; overflow:hidden;}
+  .p-bar-fill{height:100%; background:var(--leaf); border-radius:100px;}
+  .p-nums{display:flex; justify-content:space-between; font-size:12.5px; color:var(--ink-soft); margin-top:7px;}
+  .p-nums b{color:var(--pine); font-weight:700;}
+  .p-actions{display:flex; gap:9px; padding:14px 16px 16px;}
+  .btn{flex:1; text-align:center; font-size:13.5px; font-weight:700; padding:11px 10px; border-radius:11px; transition:transform .12s ease;}
+  .btn:active{transform:scale(.97);}
+  .btn-ghost{background:var(--sand); color:var(--pine);}
+  .btn-solid{background:var(--pine); color:var(--cream); display:flex; align-items:center; justify-content:center; gap:6px;}
+  .btn-solid svg{width:14px; height:14px;}
+  .btn-outline{background:#fff; border:1.5px solid var(--pine); color:var(--pine);}
+
+  .detail-head{padding:0 20px 18px; display:flex; align-items:center; gap:12px; position:sticky; top:0; background:var(--cream); z-index:10; padding-top:6px;}
+  .device.web .detail-head{padding:22px 34px 18px;}
+  .back-btn{width:36px; height:36px; border-radius:50%; background:#fff; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--pine); flex:none;}
+  .back-btn svg{width:16px; height:16px;}
+  .detail-head h2{font-size:16.5px;}
+  .detail-body{padding:0 20px 130px;}
+  .device.web .detail-body{padding:0 34px 40px; max-width:640px;}
+
+  /* video appeal */
+  .video-card{position:relative; border-radius:18px; overflow:hidden; margin-bottom:18px; aspect-ratio:16/10; background:linear-gradient(135deg,#164A36,#0E3D2C 60%,#0A2E22); cursor:pointer;}
+  .video-card .vc-bg{position:absolute; inset:0; opacity:.5; background:radial-gradient(220px 160px at 30% 30%, rgba(255,255,255,.18), transparent 60%), radial-gradient(180px 140px at 75% 70%, rgba(126,217,168,.25), transparent 60%);}
+  .video-card .vc-play{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:#fff;}
+  .vc-play-circle{width:56px; height:56px; border-radius:50%; background:rgba(255,255,255,.16); border:1.5px solid rgba(255,255,255,.4); display:flex; align-items:center; justify-content:center;}
+  .vc-play-circle svg{width:20px; height:20px; margin-left:3px;}
+  .video-card .vc-label{font-size:12.5px; font-weight:600; color:#fff;}
+  .video-card .vc-tag{position:absolute; top:12px; left:12px; background:rgba(0,0,0,.35); color:#fff; font-size:10.5px; font-weight:700; padding:4px 9px; border-radius:100px;}
+  .video-card .vc-progress{position:absolute; left:0; bottom:0; height:3px; background:#7ED9A8; width:0%; transition:width linear;}
+  .video-card.playing .vc-caption{position:absolute; left:14px; right:14px; bottom:14px; color:#fff; font-size:13px; font-weight:600; text-shadow:0 1px 6px rgba(0,0,0,.5); opacity:0; transition:opacity .3s;}
+  .video-card.playing .vc-caption.show{opacity:1;}
+  .video-card.playing .vc-play{display:none;}
+  .video-card.done .vc-play-circle{background:rgba(126,217,168,.22); border-color:#7ED9A8;}
+
+  .d-hero{display:flex; gap:16px; align-items:center; margin-bottom:16px;}
+  .d-avatar{width:76px; height:76px; border-radius:22px; background:var(--leaf-soft); color:var(--leaf); display:flex; align-items:center; justify-content:center; flex:none;}
+  .d-avatar svg{width:38px; height:38px;}
+  .d-name{font-size:20px;}
+  .d-sub{font-size:14px; color:var(--ink-soft); margin-top:3px;}
+  .d-verified{margin-top:9px;}
+
+  .d-progress{background:#fff; border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:22px; text-align:left;}
+  .d-progress .lbl{display:flex; justify-content:space-between; font-size:13.5px; color:var(--ink-soft); margin-bottom:9px;}
+  .d-progress .lbl b{color:var(--pine); font-size:15px;}
+  .d-progress .track{height:9px; background:var(--line); border-radius:100px; overflow:hidden;}
+  .d-progress .fill{height:100%; background:var(--leaf); border-radius:100px;}
+  .d-progress .tapline{margin-top:9px; font-size:12px; color:var(--leaf); font-weight:700; display:flex; align-items:center; gap:5px;}
+  .d-progress .tapline svg{width:12px; height:12px;}
+
+  .sec-label{font-size:12.5px; color:var(--gold); font-weight:700; margin-bottom:10px;}
+  .section-block{margin-bottom:24px;}
+
+  .verify-step{background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:10px;}
+  .verify-step-top{display:flex; gap:12px;}
+  .verify-step .vnum{flex:none; width:26px; height:26px; border-radius:50%; background:var(--leaf-soft); color:var(--leaf); display:flex; align-items:center; justify-content:center; font-family:'Unbounded',sans-serif; font-size:12px; font-weight:700;}
+  .verify-step h4{font-size:14.5px; color:var(--ink); font-weight:700;}
+  .verify-step p{font-size:13px; color:var(--ink-soft); margin-top:3px;}
+  .doc-row{display:flex; align-items:center; gap:10px; margin-top:12px; padding-top:12px; border-top:1px dashed var(--line);}
+  .doc-thumb{flex:none; width:42px; height:42px; border-radius:9px; background:var(--sand); display:flex; align-items:center; justify-content:center; color:var(--gold); overflow:hidden;}
+  .doc-thumb img{width:100%; height:100%; object-fit:cover;}
+  .doc-thumb svg{width:18px; height:18px;}
+  .doc-meta{flex:1; min-width:0;}
+  .doc-meta .dt{font-size:12.5px; font-weight:700; color:var(--pine);}
+  .doc-meta .ds{font-size:11.5px; color:var(--ink-soft);}
+  .doc-action{flex:none; font-size:12px; font-weight:700; color:var(--leaf); display:flex; align-items:center; gap:4px;}
+  .doc-action svg{width:12px; height:12px;}
+  .scan-btn{margin-top:12px; width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:11px; border-radius:11px; background:var(--gold-soft); color:var(--gold); font-size:13px; font-weight:700;}
+  .scan-btn svg{width:15px; height:15px;}
+
+  .smeta-line{background:#fff; border:1px solid var(--line); border-radius:14px; padding:15px; margin-bottom:10px;}
+  .smeta-top{display:flex; align-items:center; gap:11px; margin-bottom:10px;}
+  .smeta-ico{width:32px; height:32px; border-radius:9px; background:var(--sand); color:var(--gold); display:flex; align-items:center; justify-content:center; flex:none;}
+  .smeta-ico svg{width:16px; height:16px;}
+  .smeta-top h4{font-size:14.5px; color:var(--ink); font-weight:700;}
+  .smeta-top .snum{font-size:12px; color:var(--ink-soft); margin-top:1px;}
+  .smeta-track{height:6px; background:var(--line); border-radius:100px; overflow:hidden; margin-bottom:10px;}
+  .smeta-fill{height:100%; background:var(--leaf); border-radius:100px;}
+  .smeta-btnrow{display:flex; gap:8px;}
+  .smeta-line .btn{padding:9px 10px; font-size:12.5px;}
+
+  .sticky-cta{position:absolute; left:0; right:0; bottom:0; padding:14px 20px 22px; background:linear-gradient(180deg, rgba(246,248,243,0) 0%, var(--cream) 32%);}
+  .device.web .sticky-cta{padding:18px 34px 26px; max-width:640px;}
+  .sticky-cta .btn-solid{padding:15px 10px; font-size:14.5px; border-radius:14px;}
+
+  /* generic bottom sheet */
+  .sheet-overlay{position:absolute; inset:0; background:rgba(10,25,18,.42); z-index:40; opacity:0; pointer-events:none; transition:opacity .2s ease;}
+  .sheet-overlay.open{opacity:1; pointer-events:auto;}
+  .sheet{position:absolute; left:0; right:0; bottom:0; background:var(--cream); border-radius:22px 22px 0 0; padding:10px 20px 26px; max-height:88%; transform:translateY(100%); transition:transform .28s cubic-bezier(.22,.9,.3,1); box-shadow:0 -20px 40px rgba(14,61,44,.18); display:flex; flex-direction:column;}
+  .device.web .sheet{border-radius:18px; max-width:420px; left:50%; margin-left:-210px; bottom:24px; max-height:80%;}
+  .sheet-overlay.open .sheet{transform:translateY(0);}
+  .sheet-handle{width:38px; height:4px; background:var(--line); border-radius:4px; margin:2px auto 14px;}
+  .device.web .sheet-handle{display:none;}
+  .sheet-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .sheet-head h3{font-size:17px;}
+  .sheet-close{width:30px; height:30px; border-radius:50%; background:#fff; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--ink-soft); flex:none;}
+  .sheet-close svg{width:13px; height:13px;}
+  .sheet-body{overflow-y:auto;}
+
+  .sheet-target{font-size:13.5px; color:var(--ink-soft); margin-bottom:16px;}
+  .sheet-target b{color:var(--pine);}
+  .amount-row{display:flex; gap:8px; margin-bottom:18px;}
+  .amount-chip{flex:1; text-align:center; padding:11px 6px; border-radius:11px; border:1.5px solid var(--line); font-size:13.5px; font-weight:700; color:var(--ink-soft);}
+  .amount-chip.active{border-color:var(--leaf); background:var(--leaf-soft); color:var(--leaf);}
+  .anon-row{display:flex; align-items:center; gap:10px; padding:11px 13px; background:#fff; border:1px solid var(--line); border-radius:12px; margin-bottom:16px; text-align:left; width:100%;}
+  .anon-row .box{width:20px; height:20px; border-radius:6px; border:2px solid var(--line); flex:none; position:relative;}
+  .anon-row.checked .box{background:var(--leaf); border-color:var(--leaf);}
+  .anon-row.checked .box::after{content:""; position:absolute; left:5px; top:1px; width:6px; height:11px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(40deg);}
+  .anon-row .label{font-size:13.5px; font-weight:600; color:var(--ink);}
+  .anon-row .sub{font-size:11.5px; color:var(--ink-soft); margin-top:1px;}
+  .country-tabs{display:flex; gap:6px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:4px; margin-bottom:16px;}
+  .country-tabs button{flex:1; font-size:12.5px; font-weight:700; padding:9px 4px; border-radius:9px; color:var(--ink-soft);}
+  .country-tabs button.active{background:var(--pine); color:var(--cream);}
+  .method-list{display:flex; flex-direction:column; gap:8px; margin-bottom:16px;}
+  .method{display:flex; align-items:center; gap:12px; background:#fff; border:1.5px solid var(--line); border-radius:13px; padding:12px 14px; text-align:left;}
+  .method.selected{border-color:var(--leaf); background:var(--leaf-soft);}
+  .method .m-ico{width:34px; height:34px; border-radius:9px; background:var(--sand); color:var(--gold); display:flex; align-items:center; justify-content:center; flex:none;}
+  .method .m-ico svg{width:16px; height:16px;}
+  .method .m-name{font-size:14px; font-weight:700; color:var(--ink);}
+  .method .m-note{font-size:12px; color:var(--ink-soft); margin-top:1px;}
+  .method .m-radio{margin-left:auto; width:19px; height:19px; border-radius:50%; border:2px solid var(--line); flex:none;}
+  .method.selected .m-radio{border-color:var(--leaf); background:var(--leaf); position:relative;}
+  .method.selected .m-radio::after{content:""; position:absolute; inset:4px; background:#fff; border-radius:50%;}
+  .sheet-submit{background:var(--pine); color:var(--cream); border-radius:14px; padding:15px; font-size:14.5px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px; width:100%;}
+  .sheet-submit svg{width:15px; height:15px;}
+
+  /* donor list */
+  .donor-row{display:flex; align-items:center; gap:11px; padding:11px 0; border-bottom:1px solid var(--line);}
+  .donor-row:last-child{border-bottom:none;}
+  .donor-avatar{width:34px; height:34px; border-radius:50%; background:var(--sand); color:var(--gold); display:flex; align-items:center; justify-content:center; flex:none;}
+  .donor-avatar svg{width:15px; height:15px;}
+  .donor-name{font-size:13.5px; font-weight:700; color:var(--ink); flex:1;}
+  .donor-amt{font-size:13.5px; font-weight:700; color:var(--leaf);}
+
+  /* invoice modal */
+  .invoice-head{background:var(--pine); color:var(--cream); border-radius:14px; padding:16px; margin-bottom:14px;}
+  .invoice-head .ih-hosp{font-size:14.5px; font-weight:700;}
+  .invoice-head .ih-sub{font-size:12px; color:#B9D4C4; margin-top:3px;}
+  .invoice-items{background:#fff; border:1px solid var(--line); border-radius:14px; padding:4px 14px; margin-bottom:14px;}
+  .inv-row{display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--line); font-size:13.5px;}
+  .inv-row:last-child{border-bottom:none;}
+  .inv-row.total{font-weight:700; color:var(--pine);}
+  .inv-row span:last-child{font-weight:600; color:var(--pine);}
+  .transparency-box{display:flex; gap:10px; background:var(--leaf-soft); border-radius:14px; padding:13px 14px;}
+  .transparency-box svg{width:18px; height:18px; color:var(--leaf); flex:none; margin-top:1px;}
+  .transparency-box p{font-size:12.5px; color:var(--ink); line-height:1.45;}
+
+  /* document viewer */
+  .doc-viewer-img{width:100%; border-radius:14px; border:1px solid var(--line); margin-bottom:12px; filter:contrast(1.12) brightness(1.03) saturate(.95);}
+  .doc-empty{background:#fff; border:1.5px dashed var(--line); border-radius:14px; padding:34px 20px; text-align:center;}
+  .doc-empty svg{width:34px; height:34px; color:var(--ink-soft); margin:0 auto 10px;}
+  .doc-empty p{font-size:13px; color:var(--ink-soft);}
+
+  /* scan flow */
+  .scan-body{text-align:center;}
+  .scan-frame{position:relative; width:100%; aspect-ratio:3/4; border-radius:16px; overflow:hidden; background:#0A2E22; margin-bottom:16px; display:flex; align-items:center; justify-content:center;}
+  .scan-frame img{width:100%; height:100%; object-fit:cover; filter:contrast(1.12) brightness(1.03) saturate(.95);}
+  .scan-guide{position:absolute; inset:24px; border:2px dashed rgba(126,217,168,.7); border-radius:10px;}
+  .scan-frame .scan-hint{color:#B9D4C4; font-size:12.5px; padding:0 24px;}
+  .scan-processing{position:absolute; inset:0; background:rgba(10,46,34,.55); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s;}
+  .scan-processing.show{opacity:1;}
+  .spinner{width:34px; height:34px; border-radius:50%; border:3px solid rgba(255,255,255,.25); border-top-color:#7ED9A8; animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .scan-actions{display:flex; gap:10px;}
+
+  /* push notification / toast (unchanged) */
+  .toast{position:absolute; left:20px; right:20px; bottom:26px; z-index:60; background:var(--pine); color:var(--cream); padding:14px 16px; border-radius:13px; display:flex; align-items:center; gap:10px; font-size:13.5px; font-weight:600; transform:translateY(120%); transition:transform .3s cubic-bezier(.22,.9,.3,1);}
+  .toast.show{transform:translateY(0);}
+  .toast svg{width:17px; height:17px; color:#7ED9A8; flex:none;}
+  .push-banner{position:absolute; top:10px; left:10px; right:10px; z-index:55; background:#fff; border-radius:16px; padding:12px 13px; display:flex; gap:10px; box-shadow:0 14px 30px rgba(14,61,44,.28), 0 0 0 1px var(--line); transform:translateY(-140%); transition:transform .35s cubic-bezier(.22,.9,.3,1);}
+  .push-banner.show{transform:translateY(0);}
+  .push-banner .pb-ico{width:34px; height:34px; border-radius:10px; background:var(--leaf-soft); color:var(--leaf); flex:none; display:flex; align-items:center; justify-content:center;}
+  .push-banner .pb-ico svg{width:17px; height:17px;}
+  .push-banner .pb-title{font-size:12.5px; font-weight:700; color:var(--pine);}
+  .push-banner .pb-text{font-size:12px; color:var(--ink-soft); margin-top:2px; line-height:1.4;}
+
+  #screen-feed .scroll, #screen-success .scroll{padding-bottom:78px;}
+  .success-list{padding:2px 16px 22px; display:flex; flex-direction:column; gap:16px;}
+  .device.web .success-list{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; padding:4px 34px 34px;}
+  .story-card{background:#fff; border:1px solid var(--line); border-radius:16px; overflow:hidden;}
+  .story-media{display:flex; height:118px;}
+  .story-media .half{flex:1; position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+  .story-media .half.before{background:#E7ECE4;}
+  .story-media .half.after{background:var(--leaf-soft);}
+  .story-media .half svg{width:34px; height:34px; color:var(--leaf); opacity:.55;}
+  .story-media .tag{position:absolute; top:8px; left:8px; font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:100px; background:rgba(14,61,44,.78); color:#fff;}
+  .story-body{padding:14px 16px 16px;}
+  .story-name{font-size:15px; font-weight:700; color:var(--ink);}
+  .story-sub{font-size:12.5px; color:var(--ink-soft); margin-top:2px;}
+  .story-quote{font-size:13px; color:var(--ink-soft); margin-top:10px; line-height:1.5;}
+  .story-row{display:flex; gap:8px; margin-top:12px;}
+  .story-chip{flex:1; display:flex; align-items:center; gap:7px; font-size:12px; font-weight:600; color:var(--pine); background:var(--sand); padding:9px 10px; border-radius:10px;}
+  .story-chip svg{width:14px; height:14px; flex:none;}
+  .story-verified{display:inline-flex; align-items:center; gap:5px; margin-top:10px; background:var(--leaf-soft); color:var(--leaf); font-size:11px; font-weight:700; padding:4px 9px; border-radius:100px;}
+  .story-verified svg{width:11px; height:11px;}
+  .push-demo{margin:4px 16px 4px; background:var(--pine); color:var(--cream); border-radius:14px; padding:13px 15px; display:flex; align-items:center; gap:10px; font-size:12.5px; font-weight:600; width:calc(100% - 32px);}
+  .push-demo svg{width:16px; height:16px; color:#7ED9A8; flex:none;}
+
+  /* ===== hospital link + ledger/clinic entry buttons ===== */
+  .hosp-link{color:var(--leaf); text-decoration:underline; text-decoration-color:rgba(30,138,91,.35); text-underline-offset:2px; cursor:pointer;}
+  .ledger-entry{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:12px; margin-top:2px; border-radius:12px; background:#fff; border:1px dashed var(--line); color:var(--pine); font-size:13px; font-weight:700;}
+  .ledger-entry svg{width:15px; height:15px;}
+
+  /* ===== transaction ledger ===== */
+  .ledger-note{display:flex; gap:9px; background:var(--sand); border-radius:12px; padding:11px 13px; margin-bottom:16px; font-size:12px; color:var(--ink-soft); line-height:1.45;}
+  .ledger-note svg{width:15px; height:15px; color:var(--gold); flex:none; margin-top:1px;}
+  .ledger-row{display:flex; gap:12px; padding:11px 0; border-bottom:1px solid var(--line);}
+  .ledger-row:last-child{border-bottom:none;}
+  .ledger-ico{flex:none; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
+  .ledger-row.in .ledger-ico{background:var(--leaf-soft); color:var(--leaf);}
+  .ledger-row.out .ledger-ico{background:var(--gold-soft); color:var(--gold);}
+  .ledger-ico svg{width:15px; height:15px;}
+  .ledger-mid{flex:1; min-width:0;}
+  .ledger-mid .lg-title{font-size:13px; font-weight:700; color:var(--ink);}
+  .ledger-mid .lg-date{font-size:11px; color:var(--ink-soft); margin-top:1px;}
+  .ledger-amt{font-size:13.5px; font-weight:700; flex:none;}
+  .ledger-row.in .ledger-amt{color:var(--leaf);}
+  .ledger-row.out .ledger-amt{color:var(--gold);}
+
+  /* ===== clinic profile ===== */
+  .clinic-head{display:flex; gap:13px; align-items:center; background:var(--pine); color:var(--cream); border-radius:14px; padding:16px; margin-bottom:14px;}
+  .clinic-ico{flex:none; width:44px; height:44px; border-radius:12px; background:rgba(255,255,255,.12); display:flex; align-items:center; justify-content:center; color:#7ED9A8;}
+  .clinic-ico svg{width:22px; height:22px;}
+  .clinic-name{font-size:15px; font-weight:700;}
+  .clinic-sub{font-size:12px; color:#B9D4C4; margin-top:2px;}
+  .clinic-stats{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
+  .clinic-stat{background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center;}
+  .clinic-stat .cs-num{font-family:'Unbounded',sans-serif; font-weight:700; font-size:18px; color:var(--pine);}
+  .clinic-stat .cs-lab{font-size:10.5px; color:var(--ink-soft); margin-top:3px;}
+
+  /* ===== custom amount input ===== */
+  .custom-amount-row{display:none; margin:-8px 0 16px;}
+  .custom-amount-row.show{display:block;}
+  .custom-amount-row input{width:100%; padding:12px 14px; border-radius:11px; border:1.5px solid var(--leaf); font-size:15px; font-weight:700; color:var(--pine); font-family:'Golos Text',sans-serif;}
+  .custom-amount-row label{display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:6px;}
+
+  /* ===== share card ===== */
+  .share-card{border-radius:18px; overflow:hidden; background:linear-gradient(160deg,#164A36,var(--pine) 55%,var(--pine-deep)); padding:22px; color:var(--cream); margin-bottom:16px; position:relative;}
+  .share-card .sc-brand{display:flex; align-items:center; gap:7px; font-family:'Unbounded',sans-serif; font-weight:700; font-size:13px; margin-bottom:18px;}
+  .share-card .sc-brand svg{width:15px; height:15px; color:#7ED9A8;}
+  .share-card .sc-name{font-family:'Unbounded',sans-serif; font-weight:700; font-size:19px;}
+  .share-card .sc-diag{font-size:12.5px; color:#B9D4C4; margin-top:3px;}
+  .share-card .sc-track{height:8px; background:rgba(255,255,255,.18); border-radius:100px; overflow:hidden; margin:16px 0 8px;}
+  .share-card .sc-fill{height:100%; background:#7ED9A8; border-radius:100px;}
+  .share-card .sc-pct{font-family:'Unbounded',sans-serif; font-weight:700; font-size:13px; color:#7ED9A8;}
+  .share-card .sc-msg{margin-top:14px; font-size:12.5px; font-style:italic; color:#D6E9DC;}
+  .share-actions{display:flex; gap:10px;}
+  .share-caption{text-align:center; font-size:11px; color:var(--ink-soft); margin-top:10px;}
+  .caption-chips{display:flex; flex-direction:column; gap:8px; margin-bottom:16px;}
+  .caption-chip{display:flex; align-items:center; gap:10px; text-align:left; padding:11px 13px; border-radius:12px; border:1.5px solid var(--line); background:#fff; font-size:12.5px; color:var(--ink);}
+  .caption-chip.selected{border-color:var(--leaf); background:var(--leaf-soft);}
+  .caption-chip .cc-radio{width:17px; height:17px; border-radius:50%; border:2px solid var(--line); flex:none;}
+  .caption-chip.selected .cc-radio{border-color:var(--leaf); background:var(--leaf); position:relative;}
+  .caption-chip.selected .cc-radio::after{content:"";position:absolute;inset:3px;background:#fff;border-radius:50%;}
+
+  /* ===== celebration ===== */
+  .celebrate-body{text-align:center; padding:6px 0 4px;}
+  .celebrate-icon{width:66px; height:66px; border-radius:50%; background:var(--leaf-soft); color:var(--leaf); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; position:relative;}
+  .celebrate-icon svg{width:30px; height:30px;}
+  .celebrate-body h3{font-size:19px; margin-bottom:10px;}
+  .celebrate-body p{font-size:14px; color:var(--ink-soft); line-height:1.5; margin-bottom:20px;}
+  .confetti-piece{position:absolute; top:-10px; width:7px; height:12px; opacity:.9; animation:confetti-fall 2.6s ease-in forwards;}
+  @keyframes confetti-fall{
+    to{ transform:translateY(340px) rotate(400deg); opacity:0; }
+  }
+
+  .tabbar{position:absolute; left:0; right:0; bottom:0; z-index:25; background:#fff; border-top:1px solid var(--line); display:flex; padding:9px 10px calc(env(safe-area-inset-bottom, 0px) + 9px);}
+  .device.detail-open .tabbar{display:none;}
+  .tab-btn{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:6px 4px; color:var(--ink-soft); font-size:11px; font-weight:600; border-radius:12px;}
+  .tab-btn svg{width:21px; height:21px;}
+  .tab-btn.active{color:var(--leaf);}
+
+  .hint{width:100%; max-width:720px; margin-top:20px; text-align:center; font-size:13px; line-height:1.5; color:var(--ink-soft); position:relative; z-index:2;}
+  @media (max-width:520px){
+    body{padding:16px 10px 34px;}
+    .page-top{margin-bottom:14px; gap:10px;}
+    .page-logo{font-size:15px; gap:6px;}
+    .demo-pill{font-size:9px; padding:3px 6px;}
+    .view-toggle button{padding:8px 11px; font-size:12px;}
+    .view-toggle button svg{display:none;}
+    .device{width:calc(100vw - 40px); height:min(824px, calc(100dvh - 132px)); min-height:620px; border-radius:38px;}
+    .hint{font-size:12px; margin-top:16px; padding:0 8px;}
+  }
+</style>
+</head>
+<body>
+<div class="bg-layer">
+  <div class="bg-aurora"></div>
+  <svg class="bg-tunduk" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="0.6">
+    <circle cx="100" cy="100" r="95"/><circle cx="100" cy="100" r="70"/><circle cx="100" cy="100" r="42"/>
+    <line x1="100" y1="5" x2="100" y2="195"/><line x1="5" y1="100" x2="195" y2="100"/>
+    <line x1="33" y1="33" x2="167" y2="167"/><line x1="167" y1="33" x2="33" y2="167"/>
+  </svg>
+  <svg class="bg-tunduk-2" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="0.6">
+    <circle cx="100" cy="100" r="95"/><circle cx="100" cy="100" r="70"/>
+    <line x1="100" y1="5" x2="100" y2="195"/><line x1="5" y1="100" x2="195" y2="100"/>
+  </svg>
+  <div class="bg-grain"></div>
+  <div class="bg-spotlight" id="bgSpotlight"></div>
+</div>
+
+
+<div class="page-top">
+  <div class="page-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.6-9.5-9.2C.6 8.1 2.4 4.5 6 4.1c2.3-.3 4 1 6 3 2-2 3.7-3.3 6-3 3.6.4 5.4 4 3.5 7.7C19 16.4 12 21 12 21z"/></svg>
+    Amanat Med
+    <span class="demo-pill">MVP · Demo</span>
+  </div>
+  <div class="view-toggle">
+    <button class="active" data-mode="phone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="10" y1="19" x2="14" y2="19"/></svg><span data-i18n="viewApp">Приложение</span></button>
+    <button data-mode="web"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="15" rx="2"/><line x1="8" y1="22" x2="16" y2="22"/><line x1="12" y1="19" x2="12" y2="22"/></svg><span data-i18n="viewWeb">Сайт</span></button>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="device" id="device">
+    <div class="notch"></div>
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8a15 15 0 0 1 20 0M5.5 11.5a10 10 0 0 1 13 0M9 15a5 5 0 0 1 6 0"/><circle cx="12" cy="18.5" r="1" fill="currentColor" stroke="none"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="18" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="4" y="9" width="11" height="6" rx="1"/><rect x="21" y="10" width="1.6" height="4" rx="0.8"/></svg>
+      </div>
+    </div>
+
+    <!-- FEED -->
+    <div class="screen active" id="screen-feed">
+      <div class="app-header">
+        <div class="app-title" data-i18n="feedTitle">Лента сборов</div>
+        <div class="header-right">
+          <div class="lang-toggle" id="langToggle">
+            <button data-lang="ru" class="active">RU</button>
+            <button data-lang="ky">KG</button>
+          </div>
+          <div class="bell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 6-2.5 7-2.5 7h17S18 14 18 8z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></div>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="stats-strip" id="stats-strip"></div>
+        <div class="feed-list" id="feed-list"></div>
+      </div>
+    </div>
+
+    <!-- SUCCESS STORIES -->
+    <div class="screen" id="screen-success">
+      <div class="app-header">
+        <div class="app-title" data-i18n="successTitle">Они уже здоровы!</div>
+        <div class="header-right">
+          <div class="bell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.6-9.5-9.2C.6 8.1 2.4 4.5 6 4.1c2.3-.3 4 1 6 3 2-2 3.7-3.3 6-3 3.6.4 5.4 4 3.5 7.7C19 16.4 12 21 12 21z"/></svg></div>
+        </div>
+      </div>
+      <div class="scroll">
+        <button class="push-demo" onclick="showPushDemo()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 6-2.5 7-2.5 7h17S18 14 18 8z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
+          <span data-i18n="pushDemoBtn">Показать пуш-уведомление донору</span>
+        </button>
+        <div class="success-list" id="success-list"></div>
+      </div>
+    </div>
+
+    <!-- DETAIL -->
+    <div class="screen" id="screen-detail">
+      <div class="detail-head">
+        <button class="back-btn" onclick="goFeed()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5 8 12l7 7"/></svg></button>
+        <h2 data-i18n="detailHeader">Карточка сбора</h2>
+      </div>
+      <div class="scroll"><div class="detail-body" id="detail-body"></div></div>
+      <div class="sticky-cta">
+        <button class="btn btn-solid" style="width:100%;" onclick="openPay(null)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.6-9.5-9.2C.6 8.1 2.4 4.5 6 4.1c2.3-.3 4 1 6 3 2-2 3.7-3.3 6-3 3.6.4 5.4 4 3.5 7.7C19 16.4 12 21 12 21z"/></svg>
+          <span data-i18n="btnDonateFull">Сделать садака</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PAYMENT SHEET -->
+    <div class="sheet-overlay" id="pay-overlay" onclick="if(event.target===this)closeSheet('pay-overlay')">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head"><h3 data-i18n="payTitle">Сделать садака</h3><button class="sheet-close" onclick="closeSheet('pay-overlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button></div>
+        <div class="sheet-body">
+          <div class="sheet-target"><span data-i18n="purposeLabel">Назначение</span>: <b id="pay-target">—</b></div>
+          <div class="amount-row" id="amount-row">
+            <button class="amount-chip" data-amt="500">500 c</button>
+            <button class="amount-chip active" data-amt="1000">1000 c</button>
+            <button class="amount-chip" data-amt="2500">2500 c</button>
+            <button class="amount-chip" data-amt="0" data-i18n="customAmount">Своя</button>
+          </div>
+          <div class="custom-amount-row" id="custom-amount-row">
+            <label data-i18n="customAmountLabel">Введите сумму, сом</label>
+            <input type="number" id="custom-amount-input" placeholder="0" min="1">
+          </div>
+          <button class="anon-row" id="anon-row" onclick="toggleAnon()">
+            <div class="box"></div>
+            <div><div class="label" data-i18n="anonLabel">Сделать анонимно</div><div class="sub" data-i18n="anonSub">Имя не будет показано пациенту и в списке доноров</div></div>
+          </button>
+          <div class="country-tabs" id="country-tabs">
+            <button class="active" data-c="kg" data-i18n="tabKG">Кыргызстан</button>
+            <button data-c="ru" data-i18n="tabRU">Россия</button>
+            <button data-c="us" data-i18n="tabUS">США</button>
+          </div>
+          <div class="method-list" id="method-list"></div>
+          <button class="sheet-submit" onclick="submitPay()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            <span data-i18n="submitPay">Отправить садака</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DONOR LIST SHEET -->
+    <div class="sheet-overlay" id="donors-overlay" onclick="if(event.target===this)closeSheet('donors-overlay')">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head"><h3 data-i18n="donorsTitle">Кто уже помог</h3><button class="sheet-close" onclick="closeSheet('donors-overlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button></div>
+        <div class="sheet-body" id="donors-list"></div>
+      </div>
+    </div>
+
+    <!-- INVOICE SHEET -->
+    <div class="sheet-overlay" id="invoice-overlay" onclick="if(event.target===this)closeSheet('invoice-overlay')">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head"><h3 data-i18n="invoiceTitle">Счёт из клиники</h3><button class="sheet-close" onclick="closeSheet('invoice-overlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button></div>
+        <div class="sheet-body" id="invoice-body"></div>
+      </div>
+    </div>
+
+    <!-- DOCUMENT VIEWER SHEET -->
+    <div class="sheet-overlay" id="docview-overlay" onclick="if(event.target===this)closeSheet('docview-overlay')">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head"><h3 data-i18n="docViewerTitle">Медицинский документ</h3><button class="sheet-close" onclick="closeSheet('docview-overlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button></div>
+        <div class="sheet-body" id="docview-body"></div>
+      </div>
+    </div>
+
+    <!-- SCAN FLOW SHEET -->
+    <div class="sheet-overlay" id="scan-overlay" onclick="if(event.target===this)closeSheet('scan-overlay')">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head"><h3 data-i18n="scanTitle">Сканирование документа</h3><button class="sheet-close" onclick="closeSheet('scan-overlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button></div>
+        <div class="sheet-body scan-body">
+          <div class="scan-frame" id="scan-frame">
+            <span class="scan-hint" id="scan-hint" data-i18n="scanHint">Наведите камеру на документ — как в Заметках. Снимок автоматически выровняется.</span>
+            <div class="scan-guide" id="scan-guide"></div>
+            <div class="scan-processing" id="scan-processing"><div class="spinner"></div></div>
+          </div>
+          <div class="scan-actions" id="scan-actions-initial">
+            <button class="btn btn-solid" style="width:100%;" onclick="document.getElementById('scanInput').click()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+              <span data-i18n="scanOpenCamera">Открыть камеру</span>
+            </button>
+          </div>
+          <div class="scan-actions" id="scan-actions-review" style="display:none;">
+            <button class="btn btn-outline" onclick="scanRetake()" data-i18n="scanRetake">Переснять</button>
+            <button class="btn btn-solid" onclick="scanUsePhoto()" data-i18n="scanUse">Использовать фото</button>
+          </div>
+          <input type="file" accept="image/*" capture="environment" id="scanInput" style="display:none;" onchange="scanFileChosen(event)">
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTION LEDGER SHEET -->
+    <div class="sheet-overlay" id="ledger-overlay" onclick="if(event.target===this)closeSheet('ledger-overlay')">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head"><h3 data-i18n="ledgerTitle">Журнал транзакций</h3><button class="sheet-close" onclick="closeSheet('ledger-overlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button></div>
+        <div class="sheet-body" id="ledger-body"></div>
+      </div>
+    </div>
+
+    <!-- CLINIC PROFILE SHEET -->
+    <div class="sheet-overlay" id="clinic-overlay" onclick="if(event.target===this)closeSheet('clinic-overlay')">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head"><h3 data-i18n="clinicTitle">Профиль клиники</h3><button class="sheet-close" onclick="closeSheet('clinic-overlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button></div>
+        <div class="sheet-body" id="clinic-body"></div>
+      </div>
+    </div>
+
+    <!-- SHARE CARD SHEET -->
+    <div class="sheet-overlay" id="share-overlay" onclick="if(event.target===this)closeSheet('share-overlay')">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head"><h3 data-i18n="shareTitle">Спасибо за садака!</h3><button class="sheet-close" onclick="closeSheet('share-overlay')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button></div>
+        <div class="sheet-body">
+          <p style="font-size:13px; color:var(--ink-soft); margin-bottom:14px;" data-i18n="shareSubtitle">Поделитесь сбором — это тоже помощь</p>
+          <div class="share-card" id="share-card-content"></div>
+          <div class="caption-chips" id="caption-chips"></div>
+          <div class="share-actions">
+            <button class="btn btn-outline" onclick="shareDownload()"><span data-i18n="shareDownload">Скачать картинку</span></button>
+            <button class="btn btn-solid" onclick="shareNow()"><span data-i18n="shareShare">Поделиться</span></button>
+          </div>
+          <p class="share-caption" data-i18n="sharePreview">Предпросмотр карточки для соцсетей</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOAL CELEBRATION SHEET -->
+    <div class="sheet-overlay" id="celebrate-overlay" onclick="if(event.target===this)closeCelebration()">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-body celebrate-body" id="celebrate-confetti-zone" style="position:relative; overflow:hidden;">
+          <div class="celebrate-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8.5 6.2 12 13 4" transform="translate(4 3)"/><circle cx="12" cy="12" r="10"/></svg></div>
+          <h3 data-i18n="goalTitle">Цель достигнута!</h3>
+          <p id="celebrate-text"></p>
+          <button class="btn btn-solid" style="width:100%;" onclick="closeCelebration()"><span data-i18n="goalContinue">Продолжить</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="push-banner" id="push-banner" role="status" aria-live="polite">
+      <div class="pb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.6-9.5-9.2C.6 8.1 2.4 4.5 6 4.1c2.3-.3 4 1 6 3 2-2 3.7-3.3 6-3 3.6.4 5.4 4 3.5 7.7C19 16.4 12 21 12 21z"/></svg></div>
+      <div><div class="pb-title">Amanat Med</div><div class="pb-text" id="push-text"></div></div>
+    </div>
+
+    <div class="tabbar" id="tabbar">
+      <button class="tab-btn active" data-screen="screen-feed" onclick="switchTab('screen-feed')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12 12 5l8 7"/><path d="M6 10v10h12V10"/></svg>
+        <span data-i18n="tabFeed">Лента</span>
+      </button>
+      <button class="tab-btn" data-screen="screen-success" onclick="switchTab('screen-success')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.6-9.5-9.2C.6 8.1 2.4 4.5 6 4.1c2.3-.3 4 1 6 3 2-2 3.7-3.3 6-3 3.6.4 5.4 4 3.5 7.7C19 16.4 12 21 12 21z"/></svg>
+        <span data-i18n="successTitle">Они уже здоровы!</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<p class="hint" data-i18n="demoDisclaimer">Демонстрационный MVP: все имена, истории, суммы и документы вымышлены. Реальные платежи не выполняются.</p>
+
+<script>
+/* ================= I18N ================= */
+const I18N = {
+  ru: {
+    viewApp:"Приложение", viewWeb:"Сайт", demoDisclaimer:"Демонстрационный MVP: все имена, истории, суммы и документы вымышлены. Реальные платежи не выполняются.",
+    feedTitle:"Лента сборов", successTitle:"Они уже здоровы!", detailHeader:"Карточка сбора",
+    tabFeed:"Лента", verifiedBadge:"100% Верифицировано клиникой", collectedOf:"Собрано {a} из {b} сом",
+    btnMore:"Подробнее", btnDonateShort:"Садака", btnDonateFull:"Сделать садака",
+    sectionVerification:"Двойная верификация", stage1Title:"Клиника в Кыргызстане", stage2Title:"Зарубежная клиника",
+    docStatement:"Выписка из клиники", docInvoice:"Инвойс клиники", docNotUploaded:"Документ ещё не загружен",
+    docView:"Смотреть", docOpenInvoice:"Открыть инвойс", scanBtn:"Отсканировать документ",
+    sectionMoney:"Куда идут деньги", totalCollected:"Собрано всего", tapForDonors:"Нажмите — кто уже помог",
+    videoTag:"Видео-обращение", videoLabelPlay:"Смотреть обращение", videoLabelDone:"Смотреть ещё раз",
+    payTitle:"Сделать садака", purposeLabel:"Назначение", purposeGeneral:"Общий сбор",
+    anonLabel:"Сделать анонимно", anonSub:"Имя не будет показано пациенту и в списке доноров",
+    customAmount:"Своя", tabKG:"Кыргызстан", tabRU:"Россия", tabUS:"США", submitPay:"Подтвердить демо-платёж",
+    donorsTitle:"Кто уже помог", anonymousDonor:"Анонимный пользователь",
+    invoiceTitle:"Счёт из клиники", invoiceItems:"Позиции счёта", invoiceTotal:"Итого по счёту",
+    invoicePaid:"Переведено клинике напрямую", invoiceTransparency:"Деньги переводятся напрямую на счёт клиники после того, как сумма по строке собрана полностью. Пациент не получает средства наличными.",
+    docViewerTitle:"Медицинский документ",
+    scanTitle:"Сканирование документа", scanHint:"Наведите камеру на документ — как в Заметках. Снимок автоматически выровняется.",
+    scanOpenCamera:"Открыть камеру", scanRetake:"Переснять", scanUse:"Использовать фото", scanProcessing:"Обработка снимка…",
+    scannedJustNow:"Отсканировано только что", scannedByDoctor:"Загрузил врач клиники",
+    pushDemoBtn:"Показать пуш-уведомление донору", pushText:"Спасибо! {name} успешно прошёл(-ла) лечение и возвращается домой. Посмотрите видео 💚",
+    storyVideo:"Видео-благодарность", storyReport:"Финансовый отчёт", storyVerified:"Средства использованы по назначению",
+    toastPay:"Демо: платёж успешно смоделирован", toastPayAnon:"Демо: анонимный платёж успешно смоделирован",
+    tagAbroad:"За рубежом", tagLocal:"В Кыргызстане",
+    statVerified:"Проверенных сборов", statCollected:"Собрано всего", statDonors:"Уже помогли",
+    ledgerBtn:"Публичный журнал транзакций", ledgerTitle:"Журнал транзакций", ledgerNote:"Каждая запись — с датой и суммой. Ничего нельзя удалить или изменить задним числом.",
+    ledgerIn:"Поступление", ledgerOut:"Перевод клинике",
+    clinicTitle:"Профиль клиники", clinicPartner:"Партнёр Amanat Med", clinicPatients:"Пациентов на платформе", clinicTransferred:"Переведено через Amanat Med",
+    shareTitle:"Спасибо за садака!", shareSubtitle:"Поделитесь сбором — это тоже помощь", shareSupported:"Я поддержал(а) этот сбор на Amanat Med", shareDownload:"Скачать картинку", shareShare:"Поделиться", sharePreview:"Предпросмотр карточки для соцсетей", shareCopied:"Ссылка скопирована", shareSaved:"Изображение сохранено",
+    goalTitle:"Цель достигнута!", goalBody:"«{line}» у {name} закрыт благодаря вам и ещё {n} донорам.", goalContinue:"Продолжить",
+    customAmountLabel:"Введите сумму, сом",
+    cap1:"Я поддержал(а) {name} 💚 Каждая помощь на счету — помогите и вы",
+    cap2:"Собираем всей общиной на лечение {name} — присоединяйтесь 🙏",
+    cap3:"Проверено на 100% — можно посмотреть все документы. Amanat Med",
+  },
+  ky: {
+    viewApp:"Колдонмо", viewWeb:"Сайт", demoDisclaimer:"Демонстрациялык MVP: бардык ысымдар, окуялар, суммалар жана документтер ойдон чыгарылган. Чыныгы төлөмдөр жүргүзүлбөйт.",
+    feedTitle:"Жардам тизмеси", successTitle:"Алар азыр соо!", detailHeader:"Жардам картасы",
+    tabFeed:"Тизме", verifiedBadge:"100% Клиника тарабынан текшерилген", collectedOf:"{a} / {b} сом чогулду",
+    btnMore:"Толугу менен", btnDonateShort:"Садака", btnDonateFull:"Садака кылуу",
+    sectionVerification:"Эки баскычтуу текшерүү", stage1Title:"Кыргызстандагы клиника", stage2Title:"Чет өлкөлүк клиника",
+    docStatement:"Клиникадан көчүрмө", docInvoice:"Клиниканын эсеп-фактурасы", docNotUploaded:"Документ азырынча жүктөлгөн эмес",
+    docView:"Көрүү", docOpenInvoice:"Эсеп-фактураны ачуу", scanBtn:"Документти сканерлөө",
+    sectionMoney:"Акча кайда кетет", totalCollected:"Жалпы чогулду", tapForDonors:"Басыңыз — ким жардам берди",
+    videoTag:"Видео-кайрылуу", videoLabelPlay:"Кайрылууну көрүү", videoLabelDone:"Дагы көрүү",
+    payTitle:"Садака кылуу", purposeLabel:"Багыты", purposeGeneral:"Жалпы жыйым",
+    anonLabel:"Аноним катары жиберүү", anonSub:"Атыңыз бейтапка жана доногорлор тизмесинде көрсөтүлбөйт",
+    customAmount:"Өз суммаң", tabKG:"Кыргызстан", tabRU:"Россия", tabUS:"АКШ", submitPay:"Демо-төлөмдү ырастоо",
+    donorsTitle:"Ким жардам берди", anonymousDonor:"Аноним колдонуучу",
+    invoiceTitle:"Клиниканын эсеп-фактурасы", invoiceItems:"Эсептин позициялары", invoiceTotal:"Эсеп боюнча жыйынтык",
+    invoicePaid:"Клиникага түз которулду", invoiceTransparency:"Акча саптагы сумма толук чогулгандан кийин клиниканын эсебине түз которулат. Бейтап накталай акча албайт.",
+    docViewerTitle:"Медициналык документ",
+    scanTitle:"Документти сканерлөө", scanHint:"Камераны документке багыттаңыз — Notes сыяктуу эле. Сүрөт өзү туураланат.",
+    scanOpenCamera:"Камераны ачуу", scanRetake:"Кайра тартуу", scanUse:"Сүрөттү колдонуу", scanProcessing:"Сүрөт иштелүүдө…",
+    scannedJustNow:"Азыр эле сканерленди", scannedByDoctor:"Клиниканын врачы жүктөдү",
+    pushDemoBtn:"Донорго пуш-билдирүүнү көрсөтүү", pushText:"Рахмат! {name} ийгиликтүү дарыланып, үйгө кайтып жатат. Видеону көрүңүз 💚",
+    storyVideo:"Ыраазычылык видеосу", storyReport:"Каржылык отчёт", storyVerified:"Каражат максаты боюнча жумшалды",
+    toastPay:"Демо: төлөм ийгиликтүү көрсөтүлдү", toastPayAnon:"Демо: аноним төлөм ийгиликтүү көрсөтүлдү",
+    tagAbroad:"Чет өлкөдө", tagLocal:"Кыргызстанда",
+    statVerified:"Текшерилген жыйымдар", statCollected:"Жалпы чогулду", statDonors:"Жардам бергендер",
+    ledgerBtn:"Ачык транзакция журналы", ledgerTitle:"Транзакция журналы", ledgerNote:"Ар бир жазуу дата жана сумма менен. Артка кайтарып өзгөртүүгө же өчүрүүгө болбойт.",
+    ledgerIn:"Түшүм", ledgerOut:"Клиникага которуу",
+    clinicTitle:"Клиниканын профили", clinicPartner:"Amanat Med өнөктөшү", clinicPatients:"Платформадагы бейтаптар", clinicTransferred:"Amanat Med аркылуу которулду",
+    shareTitle:"Садака үчүн рахмат!", shareSubtitle:"Жыйым менен бөлүшүңүз — бул да жардам", shareSupported:"Мен бул жыйымды Amanat Med аркылуу колдодум", shareDownload:"Сүрөттү сактоо", shareShare:"Бөлүшүү", sharePreview:"Социалдык тармактар үчүн картаны алдын ала көрүү", shareCopied:"Шилтеме көчүрүлдү", shareSaved:"Сүрөт сакталды",
+    goalTitle:"Максатка жетишти!", goalBody:"{name} үчүн «{line}» сиздин жана дагы {n} донордун аркасында жабылды.", goalContinue:"Улантуу",
+    customAmountLabel:"Сумманы киргизиңиз, сом",
+    cap1:"Мен {name} колдодум 💚 Ар бир жардам маанилүү — сиз да жардам бериңиз",
+    cap2:"Бүт коом менен {name} дарылоо үчүн чогулталы — кошулуңуз 🙏",
+    cap3:"100% текшерилген — бардык документтерди көрсөңүз болот. Amanat Med",
+  }
+};
+let LANG = 'ru';
+function t(key, vars){
+  let s = (I18N[LANG] && I18N[LANG][key]) || (I18N.ru[key]) || key;
+  if(vars) Object.keys(vars).forEach(k => s = s.replace('{'+k+'}', vars[k]));
+  return s;
+}
+function tf(field){ return field[LANG] || field.ru; }
+
+function applyStaticI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+}
+function setLang(lang){
+  LANG = lang;
+  document.querySelectorAll('#langToggle button').forEach(b => b.classList.toggle('active', b.dataset.lang===lang));
+  applyStaticI18n();
+  renderFeed();
+  renderSuccess();
+  if(currentPatient) openDetail(currentPatient.id);
+  renderMethods();
+}
+document.getElementById('langToggle').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return; setLang(b.dataset.lang);
+});
+
+/* ================= ICONS ================= */
+const ICONS = {
+  hospital:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 21V8l6-4 6 4v13"/><path d="M9 21v-6h6v6"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="10" y1="12" x2="14" y2="12"/></svg>',
+  flight:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 16l20-8-8 20-2-8-8-2 8-2z"/></svg>',
+  stay:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-8h6v8"/></svg>',
+  doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M15 3v5h5"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.6-9.5-9.2C.6 8.1 2.4 4.5 6 4.1c2.3-.3 4 1 6 3 2-2 3.7-3.3 6-3 3.6.4 5.4 4 3.5 7.7C19 16.4 12 21 12 21z"/></svg>',
+  ribbon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 13a3 3 0 1 1 6 0c0 2-3 3-3 5"/><circle cx="12" cy="9" r="6"/><path d="M9 14.5 6 21l6-3 6 3-3-6.5"/></svg>',
+  kidney:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 4c-3 0-5 3-5 7s2 9 5 9c2 0 2-3 4-3s2 3 4 3c3 0 5-5 5-9s-2-7-5-7c-2 0-2 3-4 3S11 4 9 4z"/></svg>',
+  camera:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+  invoice:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+};
+function avatarIcon(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.4-4 4.2-6 7.5-6s6.1 2 7.5 6"/></svg>'; }
+function verifiedIcon(){ return '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 8.5 6.2 12 13 4"/></svg>'; }
+function fmt(n){ return n.toLocaleString('ru-RU'); }
+
+/* ================= DATA ================= */
+const patients = [
+  {
+    id:1, name:'Айжан Т.', age:{ru:'7 лет', ky:'7 жаш'}, wmark:'heart', abroad:true,
+    diagnosis:{ru:'Врождённый порок сердца', ky:'Жүрөктүн туума кемтиги'},
+    hospital:{ru:'Acıbadem, Турция', ky:'Acıbadem, Түркия'},
+    collected:118000, target:420000,
+    stage1:{ru:'Национальный центр охраны материнства и детства, Бишкек.', ky:'Улуттук эне жана бала коргоо борбору, Бишкек.'},
+    stage1Doc:null,
+    stage2:{ru:'Acıbadem, Стамбул — официальный инвойс на операцию прикреплён.', ky:'Acıbadem, Стамбул — операцияга расмий эсеп-фактура тиркелген.'},
+    videoQuote:{ru:'«Помогите Айжан вернуться к обычной жизни. Каждая сома важна» — мама Айжан.', ky:'«Айжанга кадимки жашоого кайтууга жардам бериңиз. Ар бир сом маанилүү» — Айжандын апасы.'},
+    invoice:{ hospitalName:{ru:'Acıbadem, Стамбул', ky:'Acıbadem, Стамбул'}, date:{ru:'Счёт от 12 сентября 2026', ky:'12-сентябрь 2026-эсеп'},
+      items:[ {label:{ru:'Операция на сердце', ky:'Жүрөк операциясы'}, amount:280000}, {label:{ru:'Пребывание в стационаре (5 дней)', ky:'Стационарда болуу (5 күн)'}, amount:40000} ],
+      paid:90000 },
+    smeta:[
+      {label:{ru:'Лечение (клиника)', ky:'Дарылоо (клиника)'}, icon:'hospital', collected:90000, target:320000},
+      {label:{ru:'Авиаперелёт · Turkish Airlines', ky:'Аба каттам · Turkish Airlines'}, icon:'flight', collected:18000, target:60000},
+      {label:{ru:'Проживание и питание', ky:'Жашоо жана тамактануу'}, icon:'stay', collected:10000, target:40000}
+    ],
+    donors:[
+      {name:'Нурлан Асанов', amount:15000, anon:false, date:'2 сен'},
+      {name:null, amount:10000, anon:true, date:'4 сен'},
+      {name:'Гульнара Ж.', amount:5000, anon:false, date:'6 сен'},
+      {name:'Айсулуу К.', amount:33000, anon:false, date:'9 сен'},
+      {name:null, amount:25000, anon:true, date:'12 сен'},
+      {name:'Тилек уулу Бакыт', amount:30000, anon:false, date:'15 сен'}
+    ],
+    transfers:[
+      {amount:60000, date:'10 сен', note:{ru:'Переведено клинике Acıbadem', ky:'Acıbadem клиникасына которулду'}},
+      {amount:30000, date:'16 сен', note:{ru:'Переведено клинике Acıbadem', ky:'Acıbadem клиникасына которулду'}}
+    ],
+    clinicInfo:{ partnerSince:{ru:'Партнёр с июня 2026', ky:'2026-жылдын июунунан бери өнөктөш'},
+      verifiedNote:{ru:'Документы и контакты клиники подтверждены координатором Amanat Med по телефону и официальной печати.', ky:'Клиниканын документтери жана байланыштары Amanat Med координатору тарабынан телефон жана расмий мөөр аркылуу тастыкталды.'} }
+  },
+  {
+    id:2, name:'Марат К.', age:{ru:'34 года', ky:'34 жаш'}, wmark:'ribbon', abroad:false,
+    diagnosis:{ru:'Онкология, курс химиотерапии', ky:'Онкология, химиотерапия курсу'},
+    hospital:{ru:'Городская клиническая больница, Бишкек', ky:'Шаардык клиникалык оорукана, Бишкек'},
+    collected:147500, target:150000,
+    stage1:{ru:'Городская клиническая больница №1 — заключение онколога.', ky:'№1 шаардык клиникалык оорукана — онкологдун корутундусу.'},
+    stage1Doc:null,
+    stage2:{ru:'Лечение проходит в КР, зарубежная клиника не требуется.', ky:'Дарылоо КРда өтөт, чет өлкө клиникасы керек эмес.'},
+    videoQuote:{ru:'«Спасибо всем, кто уже помог. Осталось совсем немного» — Марат.', ky:'«Жардам берген баарыңызга рахмат. Аз гана калды» — Марат.'},
+    invoice:{ hospitalName:{ru:'ГКБ №1, Бишкек', ky:'№1 ШКО, Бишкек'}, date:{ru:'Счёт от 3 сентября 2026', ky:'3-сентябрь 2026-эсеп'},
+      items:[ {label:{ru:'Курс химиотерапии (4 цикла)', ky:'Химиотерапия курсу (4 цикл)'}, amount:150000} ],
+      paid:147500 },
+    smeta:[ {label:{ru:'Курс химиотерапии', ky:'Химиотерапия курсу'}, icon:'hospital', collected:147500, target:150000} ],
+    donors:[
+      {name:'Айбек Т.', amount:20000, anon:false, date:'1 сен'},
+      {name:null, amount:30000, anon:true, date:'3 сен'},
+      {name:'Салтанат Н.', amount:14000, anon:false, date:'5 сен'},
+      {name:'Фонд «Кут»', amount:83500, anon:false, date:'8 сен'}
+    ],
+    transfers:[
+      {amount:100000, date:'9 сен', note:{ru:'Переведено в ГКБ №1', ky:'№1 ШКОго которулду'}},
+      {amount:47500, date:'10 сен', note:{ru:'Переведено в ГКБ №1', ky:'№1 ШКОго которулду'}}
+    ],
+    clinicInfo:{ partnerSince:{ru:'Партнёр с мая 2026', ky:'2026-жылдын майынан бери өнөктөш'},
+      verifiedNote:{ru:'Городская клиника в сети партнёров Amanat Med с момента запуска платформы в Бишкеке.', ky:'Шаардык клиника Amanat Med платформасы Бишкекте иштей баштагандан бери өнөктөш тармакта.'} }
+  },
+  {
+    id:3, name:'Бегимай А.', age:{ru:'2 года', ky:'2 жаш'}, wmark:'kidney', abroad:true,
+    diagnosis:{ru:'Требуется операция на почке', ky:'Бөйрөккө операция керек'},
+    hospital:{ru:'Apollo Hospitals, Индия', ky:'Apollo Hospitals, Индия'},
+    collected:210000, target:610000,
+    stage1:{ru:'Национальный госпиталь при Минздраве КР — направление подтверждено.', ky:'КР Ден соолук сактоо министрлигинин улуттук госпиталы — жолдомо тастыкталды.'},
+    stage1Doc:null,
+    stage2:{ru:'Apollo Hospitals, Нью-Дели — официальный счёт на операцию прикреплён.', ky:'Apollo Hospitals, Нью-Дели — операцияга расмий эсеп тиркелген.'},
+    videoQuote:{ru:'«Бегимай ещё такая маленькая. Помогите нам успеть на операцию» — родители.', ky:'«Бегимай али бир топ кичине. Операцияга үлгүрүүгө жардам бериңиз» — ата-энеси.'},
+    invoice:{ hospitalName:{ru:'Apollo Hospitals, Нью-Дели', ky:'Apollo Hospitals, Нью-Дели'}, date:{ru:'Счёт от 20 августа 2026', ky:'20-август 2026-эсеп'},
+      items:[ {label:{ru:'Операция на почке', ky:'Бөйрөк операциясы'}, amount:420000}, {label:{ru:'Диагностика и анализы', ky:'Диагностика жана анализдер'}, amount:60000} ],
+      paid:150000 },
+    smeta:[
+      {label:{ru:'Лечение (клиника)', ky:'Дарылоо (клиника)'}, icon:'hospital', collected:150000, target:480000},
+      {label:{ru:'Авиаперелёт · FlyDubai', ky:'Аба каттам · FlyDubai'}, icon:'flight', collected:40000, target:80000},
+      {label:{ru:'Проживание и питание', ky:'Жашоо жана тамактануу'}, icon:'stay', collected:20000, target:50000}
+    ],
+    donors:[
+      {name:'Эркин Болотов', amount:50000, anon:false, date:'21 авг'},
+      {name:null, amount:40000, anon:true, date:'23 авг'},
+      {name:'Жамиля С.', amount:20000, anon:false, date:'25 авг'},
+      {name:null, amount:60000, anon:true, date:'28 авг'},
+      {name:'Тимур А.', amount:40000, anon:false, date:'2 сен'}
+    ],
+    transfers:[
+      {amount:90000, date:'26 авг', note:{ru:'Переведено в Apollo Hospitals', ky:'Apollo Hospitals-ке которулду'}},
+      {amount:60000, date:'29 авг', note:{ru:'Переведено в Apollo Hospitals', ky:'Apollo Hospitals-ке которулду'}}
+    ],
+    clinicInfo:{ partnerSince:{ru:'Партнёр с июля 2026', ky:'2026-жылдын июлунан бери өнөктөш'},
+      verifiedNote:{ru:'Международная клиника, проверенная через официальный запрос и подтверждённый инвойс.', ky:'Эл аралык клиника расмий сурам жана тастыкталган эсеп-фактура аркылуу текшерилди.'} }
+  }
+];
+
+const stories = [
+  { name:{ru:'Нурбек, 9 лет', ky:'Нурбек, 9 жаш'}, diag:{ru:'Операция на сердце — Acıbadem, Турция', ky:'Жүрөк операциясы — Acıbadem, Түркия'}, quote:{ru:'«Спасибо всем, кто помог! Нурбек уже дома и снова гоняет на велосипеде во дворе» — рассказывают родители.', ky:'«Жардам бергендердин баарына рахмат! Нурбек үйдө, кайра велосипед тебүүдө» — ата-энеси.'} },
+  { name:{ru:'Айгуль, 41 год', ky:'Айгүл, 41 жаш'}, diag:{ru:'Курс химиотерапии — Бишкек', ky:'Химиотерапия курсу — Бишкек'}, quote:{ru:'«Лечение завершено, анализы в норме. Спасибо каждому, кто сделал садака» — говорит Айгуль.', ky:'«Дарылоо бүттү, анализдер жакшы. Садака кылган ар бирине рахмат» — Айгүл айтат.'} },
+  { name:{ru:'Данияр, 3 года', ky:'Данияр, 3 жаш'}, diag:{ru:'Операция на почке — Apollo Hospitals, Индия', ky:'Бөйрөк операциясы — Apollo Hospitals, Индия'}, quote:{ru:'«Мы вернулись в Бишкек здоровыми. Отчёт по каждой соме — в приложении» — семья Данияра.', ky:'«Бишкекке соо-саламат кайттык. Ар бир сом боюнча отчёт колдонмодо» — Даниярдын үй-бүлөсү.'} }
+];
+
+/* ================= FEED ================= */
+function renderFeed(){
+  const el = document.getElementById('feed-list');
+  const totalCollected = patients.reduce((s,p)=>s+p.collected,0);
+  const totalDonors = patients.reduce((s,p)=>s+p.donors.length,0);
+  document.getElementById('stats-strip').innerHTML = `
+    <div class="stat-cell"><div class="sc-num">${patients.length}</div><div class="sc-lab">${t('statVerified')}</div></div>
+    <div class="stat-cell"><div class="sc-num">${fmt(totalCollected)}</div><div class="sc-lab">${t('statCollected')}</div></div>
+    <div class="stat-cell"><div class="sc-num">${totalDonors}</div><div class="sc-lab">${t('statDonors')}</div></div>
+  `;
+  el.innerHTML = patients.map(p => {
+    const pct = Math.round(p.collected/p.target*100);
+    return `
+    <div class="p-card">
+      <svg class="p-watermark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">${ICONS[p.wmark].match(/<path[^>]*>|<circle[^>]*>/g).join('')}</svg>
+      <div class="p-top">
+        <div class="avatar">${avatarIcon()}</div>
+        <div class="p-info">
+          <div class="p-name">${p.name} · ${tf(p.age)}</div>
+          <div class="p-sub">${tf(p.diagnosis)}</div>
+          <div class="p-sub" style="margin-top:1px;">${tf(p.hospital)}</div>
+          <div class="verified">${verifiedIcon()}${t('verifiedBadge')}</div>
+          <span class="p-tag">${p.abroad ? t('tagAbroad') : t('tagLocal')}</span>
+        </div>
+      </div>
+      <div class="p-progress">
+        <div class="p-bar-track"><div class="p-bar-fill" style="width:${pct}%;"></div></div>
+        <div class="p-nums"><span>${t('collectedOf',{a:fmt(p.collected),b:fmt(p.target)})}</span><span>${pct}%</span></div>
+      </div>
+      <div class="p-actions">
+        <button class="btn btn-ghost" onclick="openDetail(${p.id})">${t('btnMore')}</button>
+        <button class="btn btn-solid" onclick="openDetail(${p.id}, true)">${verifiedIcon?'':''}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.6-9.5-9.2C.6 8.1 2.4 4.5 6 4.1c2.3-.3 4 1 6 3 2-2 3.7-3.3 6-3 3.6.4 5.4 4 3.5 7.7C19 16.4 12 21 12 21z"/></svg>${t('btnDonateShort')}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSuccess(){
+  const el = document.getElementById('success-list');
+  el.innerHTML = stories.map(s => `
+    <div class="story-card">
+      <div class="story-media">
+        <div class="half before"><span class="tag">${LANG==='ru'?'До':'Мурда'}</span>${ICONS.hospital}</div>
+        <div class="half after"><span class="tag">${LANG==='ru'?'После':'Кийин'}</span>${verifiedIcon()}</div>
+      </div>
+      <div class="story-body">
+        <div class="story-name">${tf(s.name)}</div>
+        <div class="story-sub">${tf(s.diag)}</div>
+        <div class="story-quote">${tf(s.quote)}</div>
+        <div class="story-row">
+          <div class="story-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M10 9l6 3-6 3z"/></svg>${t('storyVideo')}</div>
+          <div class="story-chip">${ICONS.doc}${t('storyReport')}</div>
+        </div>
+        <div class="story-verified">${verifiedIcon()}${t('storyVerified')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ================= DETAIL ================= */
+let currentPatient = null;
+
+function docRow(kind, patient){
+  const hasDoc = kind==='stage1' ? patient.stage1Doc : true;
+  if(kind==='stage1'){
+    if(patient.stage1Doc){
+      return `<div class="doc-row">
+        <div class="doc-thumb"><img src="${patient.stage1Doc}"></div>
+        <div class="doc-meta"><div class="dt">${t('docStatement')}</div><div class="ds">${t('scannedByDoctor')}</div></div>
+        <button class="doc-action" onclick="openDocViewer(${patient.id})">${t('docView')} ${ICONS.doc}</button>
+      </div>
+      <button class="scan-btn" onclick="openScan(${patient.id})">${ICONS.camera}${t('scanBtn')}</button>`;
+    }
+    return `<div class="doc-row">
+      <div class="doc-thumb">${ICONS.doc}</div>
+      <div class="doc-meta"><div class="dt">${t('docStatement')}</div><div class="ds">${t('docNotUploaded')}</div></div>
+    </div>
+    <button class="scan-btn" onclick="openScan(${patient.id})">${ICONS.camera}${t('scanBtn')}</button>`;
+  }
+  return `<div class="doc-row">
+    <div class="doc-thumb">${ICONS.invoice}</div>
+    <div class="doc-meta"><div class="dt">${t('docInvoice')}</div><div class="ds">${tf(patient.invoice.hospitalName)}</div></div>
+    <button class="doc-action" onclick="openInvoice(${patient.id})">${t('docOpenInvoice')} ${ICONS.doc}</button>
+  </div>`;
+}
+
+function openDetail(id, andPay){
+  currentPatient = patients.find(p => p.id === id);
+  const p = currentPatient;
+  const pct = Math.round(p.collected/p.target*100);
+  document.getElementById('detail-body').innerHTML = `
+    <div class="video-card" id="videoCard" onclick="playVideo()">
+      <div class="vc-bg"></div>
+      <span class="vc-tag">${t('videoTag')}</span>
+      <div class="vc-play"><div class="vc-play-circle"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div><div class="vc-label" id="videoLabel">${t('videoLabelPlay')}</div></div>
+      <div class="vc-caption" id="videoCaption"></div>
+      <div class="vc-progress" id="videoProgress"></div>
+    </div>
+
+    <div class="d-hero">
+      <div class="d-avatar">${avatarIcon()}</div>
+      <div>
+        <div class="d-name">${p.name} · ${tf(p.age)}</div>
+        <div class="d-sub">${tf(p.diagnosis)}</div>
+        <div class="d-sub"><span class="hosp-link" onclick="openClinic(${p.id})">${tf(p.hospital)}</span></div>
+        <div class="verified d-verified">${verifiedIcon()}${t('verifiedBadge')}</div>
+      </div>
+    </div>
+
+    <div class="d-progress" onclick="openDonors(${p.id})">
+      <div class="lbl"><span>${t('totalCollected')}</span><b>${fmt(p.collected)} / ${fmt(p.target)} сом</b></div>
+      <div class="track"><div class="fill" style="width:${pct}%;"></div></div>
+      <div class="tapline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5l3 2"/></svg>${t('tapForDonors')}</div>
+    </div>
+
+    <button class="ledger-entry" onclick="openLedger(${p.id})">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      ${t('ledgerBtn')}
+    </button>
+
+    <div class="section-block" style="margin-top:22px;">
+      <div class="sec-label">${t('sectionVerification')}</div>
+      <div class="verify-step">
+        <div class="verify-step-top"><div class="vnum">1</div><div><h4>${t('stage1Title')}</h4><p>${tf(p.stage1)}</p></div></div>
+        ${docRow('stage1', p)}
+      </div>
+      <div class="verify-step">
+        <div class="verify-step-top"><div class="vnum">2</div><div><h4>${t('stage2Title')}</h4><p>${tf(p.stage2)}</p></div></div>
+        ${docRow('stage2', p)}
+      </div>
+    </div>
+
+    <div class="section-block">
+      <div class="sec-label">${t('sectionMoney')}</div>
+      ${p.smeta.map((s,si) => {
+        const sp = Math.round(s.collected/s.target*100);
+        return `<div class="smeta-line">
+          <div class="smeta-top"><div class="smeta-ico">${ICONS[s.icon]}</div>
+            <div><h4>${tf(s.label)}</h4><div class="snum">${fmt(s.collected)} / ${fmt(s.target)} сом</div></div>
+          </div>
+          <div class="smeta-track"><div class="smeta-fill" style="width:${sp}%;"></div></div>
+          <div class="smeta-btnrow"><button class="btn btn-solid" style="width:100%;" onclick="openPay(${si})">${t('btnDonateFull')}</button></div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+  showScreen('screen-detail');
+  if(andPay) setTimeout(()=>openPay(null), 200);
+}
+
+function goFeed(){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.screen==='screen-feed'));
+  showScreen('screen-feed');
+}
+function switchTab(id){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.screen===id));
+  showScreen(id);
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('device').classList.toggle('detail-open', id==='screen-detail');
+}
+
+/* ================= VIDEO APPEAL (simulated) ================= */
+let videoTimer = null;
+function playVideo(){
+  if(!currentPatient) return;
+  const card = document.getElementById('videoCard');
+  const label = document.getElementById('videoLabel');
+  const cap = document.getElementById('videoCaption');
+  const prog = document.getElementById('videoProgress');
+  if(card.classList.contains('playing')) return;
+  card.classList.remove('done'); card.classList.add('playing');
+  cap.textContent = tf(currentPatient.videoQuote);
+  requestAnimationFrame(()=> cap.classList.add('show'));
+  prog.style.transition = 'none'; prog.style.width = '0%';
+  requestAnimationFrame(()=>{ prog.style.transition = 'width 6s linear'; prog.style.width = '100%'; });
+  clearTimeout(videoTimer);
+  videoTimer = setTimeout(()=>{
+    card.classList.remove('playing'); card.classList.add('done');
+    cap.classList.remove('show');
+    label.textContent = t('videoLabelDone');
+  }, 6200);
+}
+
+/* ================= DONORS ================= */
+function openDonors(id){
+  const p = patients.find(x=>x.id===id);
+  document.getElementById('donors-list').innerHTML = p.donors.map(d => `
+    <div class="donor-row">
+      <div class="donor-avatar">${d.anon? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M8 15c1.2-1 2.6-1.5 4-1.5s2.8.5 4 1.5"/></svg>' : avatarIcon()}</div>
+      <div class="donor-name">${d.anon? t('anonymousDonor') : d.name}</div>
+      <div class="donor-amt">${fmt(d.amount)} c</div>
+    </div>
+  `).join('');
+  openSheet('donors-overlay');
+}
+
+/* ================= TRANSACTION LEDGER ================= */
+function openLedger(id){
+  const p = patients.find(x=>x.id===id);
+  const inEvents = p.donors.map(d => ({type:'in', date:d.date, amount:d.amount,
+    title: d.anon ? t('anonymousDonor') : d.name}));
+  const outEvents = p.transfers.map(tr => ({type:'out', date:tr.date, amount:tr.amount, title:tf(tr.note)}));
+  const all = inEvents.concat(outEvents);
+  document.getElementById('ledger-body').innerHTML = `
+    <div class="ledger-note">${ICONS.shield}<p>${t('ledgerNote')}</p></div>
+    ${all.map(ev => `
+      <div class="ledger-row ${ev.type}">
+        <div class="ledger-ico">${ev.type==='in' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M6 13l6 6 6-6"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M6 11l6-6 6 6"/></svg>'}</div>
+        <div class="ledger-mid">
+          <div class="lg-title">${ev.title}</div>
+          <div class="lg-date">${ev.date} · ${ev.type==='in' ? t('ledgerIn') : t('ledgerOut')}</div>
+        </div>
+        <div class="ledger-amt">${ev.type==='in'?'+':'\u2212'}${fmt(ev.amount)} c</div>
+      </div>
+    `).join('')}
+  `;
+  openSheet('ledger-overlay');
+}
+
+/* ================= CLINIC PROFILE ================= */
+function openClinic(id){
+  const p = patients.find(x=>x.id===id);
+  const transferred = p.transfers.reduce((s,tr)=>s+tr.amount,0);
+  const samePatientsCount = patients.filter(x=>tf(x.hospital)===tf(p.hospital)).length;
+  document.getElementById('clinic-body').innerHTML = `
+    <div class="clinic-head">
+      <div class="clinic-ico">${ICONS.hospital}</div>
+      <div><div class="clinic-name">${tf(p.hospital)}</div><div class="clinic-sub">${t('clinicPartner')} · ${tf(p.clinicInfo.partnerSince)}</div></div>
+    </div>
+    <div class="clinic-stats">
+      <div class="clinic-stat"><div class="cs-num">${samePatientsCount}</div><div class="cs-lab">${t('clinicPatients')}</div></div>
+      <div class="clinic-stat"><div class="cs-num">${fmt(transferred)}</div><div class="cs-lab">${t('clinicTransferred')}</div></div>
+    </div>
+    <div class="transparency-box">${ICONS.shield}<p>${tf(p.clinicInfo.verifiedNote)}</p></div>
+  `;
+  openSheet('clinic-overlay');
+}
+
+/* ================= INVOICE ================= */
+function openInvoice(id){
+  const p = patients.find(x=>x.id===id);
+  const inv = p.invoice;
+  const total = inv.items.reduce((s,i)=>s+i.amount,0);
+  document.getElementById('invoice-body').innerHTML = `
+    <div class="invoice-head"><div class="ih-hosp">${tf(inv.hospitalName)}</div><div class="ih-sub">${tf(inv.date)}</div></div>
+    <div class="sec-label">${t('invoiceItems')}</div>
+    <div class="invoice-items">
+      ${inv.items.map(it => `<div class="inv-row"><span>${tf(it.label)}</span><span>${fmt(it.amount)} c</span></div>`).join('')}
+      <div class="inv-row total"><span>${t('invoiceTotal')}</span><span>${fmt(total)} c</span></div>
+      <div class="inv-row total"><span>${t('invoicePaid')}</span><span>${fmt(inv.paid)} c</span></div>
+    </div>
+    <div class="transparency-box">${ICONS.shield}<p>${t('invoiceTransparency')}</p></div>
+  `;
+  openSheet('invoice-overlay');
+}
+
+/* ================= DOCUMENT VIEWER ================= */
+function openDocViewer(id){
+  const p = patients.find(x=>x.id===id);
+  const body = document.getElementById('docview-body');
+  if(p.stage1Doc){
+    body.innerHTML = `<img class="doc-viewer-img" src="${p.stage1Doc}"><div class="transparency-box">${ICONS.shield}<p>${t('scannedByDoctor')}</p></div>`;
+  } else {
+    body.innerHTML = `<div class="doc-empty">${ICONS.doc}<p>${t('docNotUploaded')}</p></div>`;
+  }
+  openSheet('docview-overlay');
+}
+
+/* ================= SCAN FLOW ================= */
+let scanPatientId = null;
+let scanTempDataUrl = null;
+function openScan(id){
+  scanPatientId = id; scanTempDataUrl = null;
+  document.getElementById('scan-hint').style.display = 'block';
+  document.getElementById('scan-guide').style.display = 'block';
+  document.getElementById('scan-frame').style.backgroundImage = '';
+  const old = document.getElementById('scan-frame').querySelector('img'); if(old) old.remove();
+  document.getElementById('scan-actions-initial').style.display = 'flex';
+  document.getElementById('scan-actions-review').style.display = 'none';
+  openSheet('scan-overlay');
+}
+function scanFileChosen(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    scanTempDataUrl = ev.target.result;
+    const frame = document.getElementById('scan-frame');
+    document.getElementById('scan-hint').style.display = 'none';
+    document.getElementById('scan-guide').style.display = 'none';
+    const img = document.createElement('img');
+    img.src = scanTempDataUrl;
+    frame.insertBefore(img, frame.firstChild);
+    const proc = document.getElementById('scan-processing');
+    proc.classList.add('show');
+    setTimeout(()=>{
+      proc.classList.remove('show');
+      document.getElementById('scan-actions-initial').style.display = 'none';
+      document.getElementById('scan-actions-review').style.display = 'flex';
+    }, 900);
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+function scanRetake(){
+  scanTempDataUrl = null;
+  const frame = document.getElementById('scan-frame');
+  const img = frame.querySelector('img'); if(img) img.remove();
+  document.getElementById('scan-hint').style.display = 'block';
+  document.getElementById('scan-guide').style.display = 'block';
+  document.getElementById('scan-actions-initial').style.display = 'flex';
+  document.getElementById('scan-actions-review').style.display = 'none';
+}
+function scanUsePhoto(){
+  const p = patients.find(x=>x.id===scanPatientId);
+  if(p && scanTempDataUrl){ p.stage1Doc = scanTempDataUrl; }
+  closeSheet('scan-overlay');
+  if(currentPatient && currentPatient.id===scanPatientId) openDetail(scanPatientId);
+  showToastRaw(t('scannedJustNow'));
+}
+
+/* ================= GENERIC SHEETS ================= */
+function openSheet(id){ document.getElementById(id).classList.add('open'); }
+function closeSheet(id){ document.getElementById(id).classList.remove('open'); }
+
+/* ================= PAYMENT ================= */
+let selectedCountry = 'kg';
+let selectedMethodIdx = 0;
+let isAnon = false;
+let paySmetaIndex = null;
+let selectedAmount = 1000;
+
+function openPay(smetaIndex){
+  paySmetaIndex = (typeof smetaIndex === 'number') ? smetaIndex : null;
+  const label = paySmetaIndex !== null ? tf(currentPatient.smeta[paySmetaIndex].label) : t('purposeGeneral');
+  document.getElementById('pay-target').textContent = label;
+  selectedAmount = 1000;
+  document.querySelectorAll('.amount-chip').forEach(x=>x.classList.toggle('active', x.dataset.amt==='1000'));
+  document.getElementById('custom-amount-row').classList.remove('show');
+  document.getElementById('custom-amount-input').value = '';
+  renderMethods();
+  openSheet('pay-overlay');
+}
+document.getElementById('amount-row').addEventListener('click', e=>{
+  const c = e.target.closest('.amount-chip'); if(!c) return;
+  document.querySelectorAll('.amount-chip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');
+  const amt = parseInt(c.dataset.amt, 10);
+  const customRow = document.getElementById('custom-amount-row');
+  if(amt === 0){
+    customRow.classList.add('show');
+    document.getElementById('custom-amount-input').focus();
+  } else {
+    customRow.classList.remove('show');
+    selectedAmount = amt;
+  }
+});
+document.getElementById('custom-amount-input').addEventListener('input', e=>{
+  selectedAmount = parseInt(e.target.value, 10) || 0;
+});
+document.getElementById('country-tabs').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  selectedCountry = b.dataset.c; selectedMethodIdx = 0;
+  document.querySelectorAll('#country-tabs button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  renderMethods();
+});
+function toggleAnon(){ isAnon = !isAnon; document.getElementById('anon-row').classList.toggle('checked', isAnon); }
+
+const methodsByCountry = {
+  kg:[ {key:'MBank', note:{ru:'QR-код · перевод в 1 клик', ky:'QR-код · 1 басуу менен'}, icon:'bank'},
+       {key:'Elcart', note:{ru:'Национальная карта', ky:'Улуттук карта'}, icon:'card'},
+       {key:'Optima24', note:{ru:'Мобильный банк', ky:'Мобилдик банк'}, icon:'bank'},
+       {key:'Bakai', note:{ru:'Мобильный банк', ky:'Мобилдик банк'}, icon:'bank'} ],
+  ru:[ {key:'Карта МИР', note:{ru:'Без комиссии для диаспоры', ky:'Диаспора үчүн комиссиясыз'}, icon:'card'},
+       {key:'Сбербанк', note:{ru:'Перевод по номеру карты', ky:'Карта номери менен которуу'}, icon:'bank'},
+       {key:'Т-Банк', note:{ru:'Перевод по номеру карты', ky:'Карта номери менен которуу'}, icon:'bank'},
+       {key:'СБП', note:{ru:'Система быстрых платежей', ky:'Тез төлөм системасы'}, icon:'bolt'} ],
+  us:[ {key:'Zelle', note:{ru:'Реквизит некоммерческого счёта', ky:'Коммерциялык эмес эсеп'}, icon:'bank'},
+       {key:'Apple Pay', note:{ru:'Оплата в один клик', ky:'Бир басуу менен төлөм'}, icon:'card'},
+       {key:'Stripe', note:{ru:'Visa / Mastercard', ky:'Visa / Mastercard'}, icon:'card'},
+       {key:'Visa / Mastercard', note:{ru:'Оплата картой', ky:'Карта менен төлөм'}, icon:'card'} ]
+};
+const methodIcons = {
+  bank:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10 12 4l9 6"/><rect x="5" y="10" width="14" height="9"/><line x1="9" y1="13" x2="9" y2="17"/><line x1="15" y1="13" x2="15" y2="17"/></svg>',
+  card:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="5.5" width="19" height="13" rx="2"/><line x1="2.5" y1="9.5" x2="21.5" y2="9.5"/></svg>',
+  bolt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" stroke-linejoin="round"/></svg>'
+};
+function renderMethods(){
+  const list = methodsByCountry[selectedCountry];
+  document.getElementById('method-list').innerHTML = list.map((m,i)=>`
+    <button class="method ${i===selectedMethodIdx?'selected':''}" onclick="selectMethod(${i})">
+      <div class="m-ico">${methodIcons[m.icon]}</div>
+      <div><div class="m-name">${m.key}</div><div class="m-note">${tf(m.note)}</div></div>
+      <div class="m-radio"></div>
+    </button>`).join('');
+}
+function selectMethod(i){ selectedMethodIdx = i; renderMethods(); }
+
+function submitPay(){
+  const amount = selectedAmount > 0 ? selectedAmount : 1000;
+  const p = currentPatient;
+  let completedLine = null;
+  let completedPatient = false;
+
+  if(p){
+    if(paySmetaIndex !== null){
+      const line = p.smeta[paySmetaIndex];
+      const wasIncomplete = line.collected < line.target;
+      line.collected = Math.min(line.target, line.collected + amount);
+      p.collected = Math.min(p.target, p.collected + amount);
+      if(wasIncomplete && line.collected >= line.target) completedLine = line;
+    } else {
+      p.collected = Math.min(p.target, p.collected + amount);
+    }
+    if(p.collected >= p.target) completedPatient = true;
+    p.donors.push({ name: isAnon ? null : 'Вы', amount, anon: isAnon, date: LANG==='ru'?'сегодня':'бүгүн' });
+  }
+
+  closeSheet('pay-overlay');
+  showToastRaw(isAnon ? t('toastPayAnon') : t('toastPay'));
+
+  const wasAnon = isAnon;
+  isAnon = false;
+  document.getElementById('anon-row').classList.remove('checked');
+
+  if(p && currentPatient && currentPatient.id === p.id) openDetail(p.id);
+  renderFeed();
+
+  if(p){
+    if(completedLine){
+      openCelebration(p, tf(completedLine.label), p.donors.length - 1);
+    } else if(completedPatient){
+      openCelebration(p, tf({ru:'общий сбор', ky:'жалпы жыйым'}), p.donors.length - 1);
+    } else {
+      setTimeout(()=> openShareCard(p, amount, wasAnon), 260);
+    }
+  }
+}
+
+/* ================= SHARE CARD ================= */
+let sharePatient = null;
+let shareAmount = 0;
+let selectedCaptionIdx = 0;
+
+function openShareCard(p, amount, wasAnon){
+  sharePatient = p; shareAmount = amount;
+  selectedCaptionIdx = 0;
+  const pct = Math.round(p.collected/p.target*100);
+  document.getElementById('share-card-content').innerHTML = `
+    <div class="sc-brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.6-9.5-9.2C.6 8.1 2.4 4.5 6 4.1c2.3-.3 4 1 6 3 2-2 3.7-3.3 6-3 3.6.4 5.4 4 3.5 7.7C19 16.4 12 21 12 21z"/></svg>Amanat Med</div>
+    <div class="sc-name">${p.name} · ${tf(p.age)}</div>
+    <div class="sc-diag">${tf(p.diagnosis)}</div>
+    <div class="sc-track"><div class="sc-fill" style="width:${pct}%;"></div></div>
+    <div class="sc-pct">${pct}% \u00b7 ${fmt(p.collected)} / ${fmt(p.target)} \u0441\u043e\u043c</div>
+    <div class="sc-msg">${t('shareSupported')}</div>
+  `;
+  renderCaptionChips();
+  openSheet('share-overlay');
+}
+function renderCaptionChips(){
+  const opts = [1,2,3].map(n => t('cap'+n, {name: sharePatient.name}));
+  document.getElementById('caption-chips').innerHTML = opts.map((txt,i) => `
+    <button class="caption-chip ${i===selectedCaptionIdx?'selected':''}" onclick="selectCaption(${i})">
+      <div class="cc-radio"></div><span>${txt}</span>
+    </button>`).join('');
+}
+function selectCaption(i){ selectedCaptionIdx = i; renderCaptionChips(); }
+function currentCaptionText(){ return t('cap'+(selectedCaptionIdx+1), {name: sharePatient.name}); }
+function shareLink(){
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.hash = '';
+  if(sharePatient) url.searchParams.set('case', sharePatient.id);
+  return url.toString();
+}
+
+/* Draws a clean, chrome-free vertical card (no fake platform UI) as the real
+   downloadable/shareable image -- what gets posted, not a mockup of a feed. */
+function drawShareCanvas(){
+  const p = sharePatient;
+  const pct = Math.min(100, Math.round(p.collected/p.target*100));
+  const W = 1080, H = 1920;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  const grad = ctx.createLinearGradient(0,0,W*0.4,H);
+  grad.addColorStop(0,'#164A36'); grad.addColorStop(0.55,'#0E3D2C'); grad.addColorStop(1,'#0A2E22');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+
+  function wrap(text, x, y, maxWidth, lineHeight){
+    const words = text.split(' ');
+    let line = '', cy = y;
+    for(let i=0;i<words.length;i++){
+      const test = line + words[i] + ' ';
+      if(ctx.measureText(test).width > maxWidth && line){
+        ctx.fillText(line, x, cy); line = words[i] + ' '; cy += lineHeight;
+      } else { line = test; }
+    }
+    ctx.fillText(line, x, cy);
+    return cy + lineHeight;
+  }
+
+  // brand
+  ctx.fillStyle = '#7ED9A8';
+  ctx.font = '700 40px Unbounded, sans-serif';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('\u2665  Amanat Med', 90, 170);
+
+  // card
+  const cardX = 90, cardY = 420, cardW = W-180, cardH = 560;
+  ctx.fillStyle = '#ffffff';
+  roundRect(ctx, cardX, cardY, cardW, cardH, 36); ctx.fill();
+
+  ctx.fillStyle = '#0E3D2C';
+  ctx.font = '700 54px Unbounded, sans-serif';
+  ctx.fillText(p.name + ' \u00b7 ' + tf(p.age), cardX+56, cardY+110);
+
+  ctx.fillStyle = '#4C5C52';
+  ctx.font = '500 34px "Golos Text", sans-serif';
+  wrap(tf(p.diagnosis), cardX+56, cardY+180, cardW-112, 44);
+
+  const trackY = cardY+300, trackX = cardX+56, trackW = cardW-112;
+  ctx.fillStyle = '#DBE1D3'; roundRect(ctx, trackX, trackY, trackW, 24, 12); ctx.fill();
+  ctx.fillStyle = '#1E8A5B'; roundRect(ctx, trackX, trackY, trackW*(pct/100), 24, 12); ctx.fill();
+
+  ctx.fillStyle = '#1E8A5B'; ctx.font = '700 34px Unbounded, sans-serif';
+  ctx.fillText(pct + '%', trackX, trackY+80);
+  ctx.fillStyle = '#4C5C52'; ctx.font = '600 30px "Golos Text", sans-serif'; ctx.textAlign = 'right';
+  ctx.fillText(fmt(p.collected) + ' / ' + fmt(p.target) + ' \u0441\u043e\u043c', trackX+trackW, trackY+78);
+  ctx.textAlign = 'left';
+
+  ctx.fillStyle = '#E4F1E9'; roundRect(ctx, cardX+56, cardY+430, 620, 74, 100); ctx.fill();
+  ctx.fillStyle = '#1E8A5B'; ctx.font = '700 28px "Golos Text", sans-serif';
+  ctx.fillText('\u2713  100% \u0412\u0435\u0440\u0438\u0444\u0438\u0446\u0438\u0440\u043e\u0432\u0430\u043d\u043e', cardX+90, cardY+477);
+
+  // caption
+  ctx.fillStyle = 'rgba(255,255,255,.96)';
+  ctx.font = '700 46px Unbounded, sans-serif';
+  ctx.textAlign = 'center';
+  wrap(currentCaptionText(), W/2, cardY+cardH+140, W-220, 60);
+  ctx.textAlign = 'left';
+
+  // link
+  ctx.fillStyle = 'rgba(255,255,255,.7)';
+  ctx.font = '600 34px "Golos Text", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(shareLink(), W/2, H-140);
+  ctx.textAlign = 'left';
+
+  return canvas;
+}
+function roundRect(ctx,x,y,w,h,r){
+  r = Math.min(r, w/2, h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+function shareDownload(){
+  try{
+    const canvas = drawShareCanvas();
+    const link = document.createElement('a');
+    link.download = 'amanat-med-' + (sharePatient?sharePatient.id:'story') + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToastRaw(t('shareSaved'));
+  }catch(e){ showToastRaw(t('shareSaved')); }
+}
+async function shareNow(){
+  const text = currentCaptionText();
+  const url = shareLink();
+  try{
+    const canvas = drawShareCanvas();
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    const file = new File([blob], 'amanat-med.png', {type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:'Amanat Med', text: text + '\n' + url});
+      return;
+    }
+    if(navigator.share){
+      await navigator.share({title:'Amanat Med', text: text, url: url});
+      return;
+    }
+  }catch(e){ /* user cancelled or unsupported -- fall through to clipboard */ }
+  try{ navigator.clipboard && await navigator.clipboard.writeText(text + '\n' + url); }catch(e){}
+  showToastRaw(t('shareCopied'));
+}
+
+/* ================= GOAL CELEBRATION ================= */
+function openCelebration(p, lineLabel, donorCount){
+  document.getElementById('celebrate-text').textContent = t('goalBody', {line:lineLabel, name:p.name, n:donorCount});
+  openSheet('celebrate-overlay');
+  spawnConfetti();
+}
+function closeCelebration(){
+  closeSheet('celebrate-overlay');
+  if(currentPatient) setTimeout(()=> openShareCard(currentPatient, selectedAmount, false), 200);
+}
+function spawnConfetti(){
+  const zone = document.getElementById('celebrate-confetti-zone');
+  zone.querySelectorAll('.confetti-piece').forEach(el=>el.remove());
+  const colors = ['#1E8A5B','#B3812F','#0E3D2C','#7ED9A8'];
+  for(let i=0;i<26;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = (Math.random()*100) + '%';
+    el.style.background = colors[i % colors.length];
+    el.style.animationDelay = (Math.random()*0.4) + 's';
+    el.style.transform = `rotate(${Math.random()*360}deg)`;
+    zone.appendChild(el);
+  }
+}
+
+function showToastRaw(text){
+  const toast = document.getElementById('toast');
+  toast.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8.5 6.2 12 13 4" transform="translate(4 3)"/><circle cx="12" cy="12" r="10"/></svg>` + text;
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'), 2600);
+}
+
+function showPushDemo(){
+  document.getElementById('push-text').textContent = t('pushText',{name:'Нурбек'});
+  const b = document.getElementById('push-banner');
+  b.classList.add('show');
+  setTimeout(()=>b.classList.remove('show'), 3400);
+}
+
+/* ================= VIEW TOGGLE ================= */
+document.querySelector('.view-toggle').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('.view-toggle button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.getElementById('device').classList.toggle('web', b.dataset.mode==='web');
+});
+
+/* ================= AMBIENT SPOTLIGHT ================= */
+document.addEventListener('mousemove', (e) => {
+  const x = (e.clientX / window.innerWidth) * 100;
+  const y = (e.clientY / window.innerHeight) * 100;
+  document.documentElement.style.setProperty('--mx', x + '%');
+  document.documentElement.style.setProperty('--my', y + '%');
+});
+
+/* ================= INIT ================= */
+document.getElementById('device').addEventListener('scroll', function(){ this.scrollTop = 0; this.scrollLeft = 0; });
+applyStaticI18n();
+renderFeed();
+renderSuccess();
+renderMethods();
+const sharedCaseId = Number(new URLSearchParams(window.location.search).get('case'));
+if(patients.some(patient => patient.id === sharedCaseId)) openDetail(sharedCaseId);
+</script>
+</body>
+</html>
